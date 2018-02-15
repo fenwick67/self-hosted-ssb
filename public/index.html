@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <title>SSB Self-Hosted Web</title>
+  
+  <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css'>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="app">
+  <div class="main">
+
+    <div id="tabs">
+      <div class="top hero has-shadow" :style="{background:currentRouteColor}" style="transition:all 0.5s ease">
+        <div class="tabs is-fullwidth is-boxed" >
+          <ul>
+            <li v-for="route,href in routes" :class="{'is-active': currentRoute == href}">
+              <a :href="href" @click="setHash(href)" :style="{color: currentRoute == href?route.color:'white'}">
+                {{route.icon}}&#xFE0E;
+                <span class="is-hidden-mobile">&nbsp;{{route.title}}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div><!-- end tabs -->
+
+    <div class="bottom">
+      <div id="sidebar"></div>
+      <div id="page"></div>
+    </div>
+  </div>
+
+</div><!-- end app -->
+
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js'></script>
+<script src="js/index.js"></script>
+</body>
+</html>

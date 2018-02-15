@@ -1,0 +1,48 @@
+
+html,body{
+  height:100%;
+}
+.app{
+  height:100%;
+  width:100%;
+  display:flex;
+  flex-direction:row;
+}
+.app>*{
+  flex:1 1 auto;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+.top{
+  display:flex;
+  flex-direction:row;
+  align-items:flex-end;
+  justify-content:center;
+  height:3.5rem;
+}
+.top>*{
+  flex:1 1 auto;
+  max-width:50rem;
+}
+.has-shadow{  
+  box-shadow:0 0 5px 1px rgba(0,0,0,0.3) inset;
+}
+.post-container{
+  margin:1rem 0;
+}
+.posts-container{
+  display:flex;
+  width:100%;
+  justify-content:center;
+}
+.posts{
+  max-width:50rem;
+  margin:1rem;
+}
+#tabs li:not(.is-active) a:hover{
+  background:rgba(255,255,255,0.3);
+}
+#sidebar{
+  position:relative;
+}
