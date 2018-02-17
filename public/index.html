@@ -4,41 +4,46 @@
 <head>
   <meta charset="UTF-8">
   <title>SSB Self-Hosted Web</title>
-  
+
   <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css'>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
 
-<div class="app">
-  <div class="main">
-
-    <div id="tabs">
-      <div class="top hero has-shadow" :style="{background:currentRouteColor}" style="transition:all 0.5s ease">
-        <div class="tabs is-fullwidth is-boxed" >
-          <ul>
-            <li v-for="route,href in routes" :class="{'is-active': currentRoute == href}">
-              <a :href="href" @click="setHash(href)" :style="{color: currentRoute == href?route.color:'white'}">
-                {{route.icon}}&#xFE0E;
-                <span class="is-hidden-mobile">&nbsp;{{route.title}}</span>
-              </a>
-            </li>
-          </ul>
+  <div class="app" id="app">
+    <div class="main">
+      <div id="tabs">
+        <div class="top hero has-shadow" style="transition:all 0.5s ease"  :style="{'background':routeColor}">
+          <div class="tabs is-fullwidth is-boxed">
+            <ul>
+              <li v-for="tab,link in tabInfo"  :class="{'is-active': $route.path==link}">
+                <router-link :to="link"  :style="{'color': $route.path==link?routeColor:'white'}">
+                  {{tab.icon}}&#xFE0E;
+                  <span class="is-hidden-mobile">&nbsp;{{tab.title}}</span>
+                </router-link>
+              </li>
+            </ul>
+          </div>
         </div>
+      </div><!-- end #tabs -->
+      <div class="bottom">
+        <div id="sidebar"></div>
+        <router-view></router-view>
       </div>
-    </div><!-- end tabs -->
-
-    <div class="bottom">
-      <div id="sidebar"></div>
-      <div id="page"></div>
     </div>
-  </div>
 
-</div><!-- end app -->
+  </div><!-- end app -->
 
 
-<script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js'></script>
-<script src="js/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/3.0.1/vue-router.min.js"></script>
+<script src="/js/component/ssb-avatar.js"></script>
+<script src="/js/component/ssb-post.js"></script>
+<script src="/js/component/new-post.js"></script>
+<script src="/js/component/post-list.js"></script>
+<script src="/js/component/ssb-profile.js"></script>
+<script src="/js/index.js"></script>
+
 </body>
 </html>

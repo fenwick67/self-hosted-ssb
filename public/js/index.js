@@ -1,34 +1,35 @@
-function timeSince(date) {
+window.hrefForUserid = function(id){
+  var id = id;
+  return `/profile/${encodeURIComponent(id).replace('.','%2E')}`
+}
+window.hrefForChannel = function(c){
+  var c = c;
+  if(c.indexOf('#') == 0){
+    c=c.slice(1);
+  }
+  return `/channel/${ encodeURIComponent(c) }`
+}
+window.hrefForBlobAddress = function(addr){
+  return `/blob/${ encodeURIComponent(addr) }`
+}
 
-  var seconds = Math.floor((new Date() - date) / 1000);
-
-  var interval = Math.floor(seconds / 31536000);
-
-  if (interval > 1) {
-    return interval + " years";
+window.hrefForSsb= function(s){
+  var s = s;
+  if(s.indexOf('#') == 0){
+    return window.hrefForChannel(s);
+  }else if(s.indexOf('@') == 0){
+    return window.hrefForUserid(s);
+  }else if(s.indexOf('&') == 0){
+    return window.hrefForBlobAddress(s);
+  }else{
+    // not a SSB URL at all!
+    return s;
   }
-  interval = Math.floor(seconds / 2592000);
-  if (interval > 1) {
-    return interval + " months";
-  }
-  interval = Math.floor(seconds / 86400);
-  if (interval > 1) {
-    return interval + " days";
-  }
-  interval = Math.floor(seconds / 3600);
-  if (interval > 1) {
-    return interval + " hours";
-  }
-  interval = Math.floor(seconds / 60);
-  if (interval > 1) {
-    return interval + " minutes";
-  }
-  return Math.floor(seconds) + " seconds";
 }
 
 function getPosts(opts,callback){
   var opts = opts || {};
-  var count = opts.count || 30;
+  var count = opts.count || 20;
   var startTime = opts.startTime || Date.now();
 
   fetch(`/posts?count=${count}&start=${startTime}`).then(response=>{
@@ -43,7 +44,7 @@ function getPosts(opts,callback){
 
 function getFriendsPosts(opts,callback){
   var opts = opts || {};
-  var count = opts.count || 30;
+  var count = opts.count || 20;
   var startTime = opts.startTime || Date.now();
 
   fetch(`/friendsPosts?count=${count}&start=${startTime}`).then(response=>{
@@ -71,154 +72,68 @@ function getEntries(callback,opts){
   })
 }
 
-Vue.component('post-list',{
-    template:`
-    <div class="posts-container">
-      <div class="posts">
-        <div class="field">
-          <input type="text" class="input" placeholder="Filter" v-model="search"></input>
-        </div>
-        <a class="button is-link is-large is-fullwidth" @click="requestRefresh">Refresh Posts</a>
-        <div v-if="posts.length == 0">Loading...</div>
-        <div v-for="post in filteredPosts" class="post-container" >
-          <ssb-post :post="post"></ssb-post>
-        </div>
-        <a v-if="posts.length > 0" class="button is-large is-link is-fullwidth" @click="requestMore">More</a>
-      </div>
-    </div>`,
-    props:['posts'],
-    data:function(){
-      return {search:''}
-    },
-    computed:{
-      reversedPosts:function(){
-        if(this.posts && Array.isArray(this.posts)){
-          return this.posts.reverse();
-        }else{
-          return [];
-        }
-      },
-      filteredPosts:function(){
-        var query = this.search.toLowerCase();
-        return this.posts.filter(p=> !this.search || JSON.stringify(p).toLowerCase().indexOf(query) > -1)
-      }
-    },
-    methods:{
-      requestRefresh(){
-        this.$parent.$emit('requestRefresh');
-      },
-      requestMore(){
-        this.$parent.$emit('requestMore');
-      }
-    }
-})
 
-
-Vue.component('ssb-post',{
-  props:['post'],
-  template:`
-  <div class="box post">
-      <article class="media">
-        <figure class="media-left">
-          <p class="image is-64x64">
-            <img src="https://bulma.io/images/placeholders/128x128.png">
-          </p>
-        </figure>
-        <div class="media-content">
-          <div class="content">
-            <p>
-              <strong>{{  }}</strong>
-              <span v-if="post.authorIsFriend">&nbsp;<span class="tag is-success">Following</span>&nbsp;</span>
-              <small><a>{{post.author}}</a></small>
-              <br>
-              <span v-html="post.content.text" class="content"></span>
-            </p>
-          </div>
-          <nav class="level is-mobile">
-            <div class="level-left">
-              <a class="level-item" aria-label="like">👍&#xFE0E;</a>
-              <a class="level-item" aria-label="boost">🔃&#xFE0E;</a>
-              <a class="level-item" aria-label="reply">↪️&#xFE0E;</a>
-              <small>{{ age }}&nbsp;ago</small>
-              <small v-if="post.content.channel">&nbsp;in&nbsp;<b>{{ post.content.channel }}</b></small>
-            </div>
-          </nav>
-        </div>
-      </article>
-    </div>
-  `,
-  computed:{
-    age(){
-      return timeSince(this.post.timestamp)
-    }
-  }
-})
 
 const Public = {
-
   data:function(){
-    return { posts: [], cursor:Infinity };
+    return { posts: [], cursor:Infinity, loading:false };
   },
-  template: `<post-list :posts="posts"></post-list>`,
-  created(){
-    this.refresh()
-    this.$on('requestRefresh',this.refresh)
-    this.$on('requestMore',this.more)
-  },
+  template: `<post-list :posts="posts" :refresh="refresh" :more="more"></post-list>`,
   methods:{
-    refresh(){
+    refresh(cb){
       this.posts=[];
+      this.cursor=Infinity;
       getPosts({},(er,data)=>{
-        if(er){console.error(er);}
-        data.forEach(p=>{
-          this.posts.push(p);
-          this.cursor = Math.min(p.timestamp,this.cursor);
-        })
-      });
-    },
-    more(){
-      getPosts({startTime:this.cursor},(er,data)=>{
-        if(er){console.error(er);}
+        if(er){cb(er);}
         data.forEach(p=>{
           this.posts.push(p)
-          this.cursor = Math.min(p.timestamp,this.cursor);
+          this.cursor = Math.min(p.timestamp,this.cursor)
         })
+        cb(null,data);
+      });
+    }
+    ,
+    more(cb){
+      getPosts({startTime:this.cursor},(er,data)=>{
+        if(er){cb(er);}
+        data.forEach(p=>{
+          this.cursor = Math.min(p.timestamp,this.cursor)
+          this.posts.push(p)
+        })
+        cb(null,data);
       });
     }
   }
-
 }
 
 
 const Friends = {
   data:function(){
-    return { posts: [], cursor:Infinity };
+    return { posts: [], cursor:Infinity, loading:false };
   },
-  template: `<post-list :posts="posts"></post-list>`,
-  created(){
-    this.refresh()
-    this.$on('requestRefresh',this.refresh)
-    this.$on('requestMore',this.more)
-  },
+  template: `<post-list :posts="posts" :refresh="refresh" :more="more"></post-list>`,
   methods:{
-    refresh(){
+    refresh(cb){
       this.posts=[];
+      this.cursor=Infinity;
       getFriendsPosts({},(er,data)=>{
-        if(er){console.error(er);}
+        if(er){cb(er);}
         data.forEach(p=>{
           this.posts.push(p)
           this.cursor = Math.min(p.timestamp,this.cursor)
         })
+        cb(null,data);
       });
     }
     ,
-    more(){
+    more(cb){
       getFriendsPosts({startTime:this.cursor},(er,data)=>{
-        if(er){console.error(er);}
+        if(er){cb(er);}
         data.forEach(p=>{
           this.cursor = Math.min(p.timestamp,this.cursor)
           this.posts.push(p)
         })
+        cb(null,data);
       });
     }
   }
@@ -228,102 +143,129 @@ const Friends = {
 const Private = {
 
   data:function(){
-    return { };
+    return { posts:[] };
   },
-  computed:{
-    posts(){
-      return globalPosts.filter(p=>p.isPrivate)
-    }
-  },
-  template: `<post-list :posts="posts"></post-list>`
+  computed:{},
+  template: `<post-list :posts="posts" :refresh="refresh" :reload="reload"></post-list>`,
+  methods:{
+    reload(){},
+    refresh(){}
+  }
 
 }
 
 const NotFound = { template: '<p>Page not found</p>' }
-const New = { template: '<p>New page</p>' }
 const Mentions = { template: '<p>Mentions page</p>' }
 const Settings = { template: '<p>Settings page</p>' }
 
 
-// tabs and routing
+// tabs and routing ///////////////////////////////////////
 
-var hash = {location:'#'};
-
-const routes = {
-  '#new': {
-    component:New,
+const tabInfo = {
+  '/new': {
     title:"Compose",
     icon:"➕",
     color:"hsl(160,100%,40%)"
   },
-  '#': {
-    component:Public,
+  '/': {
     title:"Public",
     icon:"🐚",
     color:"hsl(190,100%,40%)"
   },
-  '#friends':{
-    component:Friends,
+  '/friends':{
     title:"Friends",
     icon:"😎",
     color:'hsl(220,80%,50%)'
   },
-  '#private': {
-    component:Private,
+  '/private': {
     title:"Private",
     icon:"🔒",
     color:"hsl(300,100%,40%)"
   },
-  '#mentions': {
-    component:Mentions,
+  '/mentions': {
     title:"Mentions",
     icon:"❗",
     color:"hsl(0,100%,40%)"
   },
-  '#settings': {
-    component:Settings,
+  '/settings': {
     title:"Settings",
     icon:"⚙️",
     color:"hsl(200,0%,40%)"
   }
 }
 
-new Vue({
-  el: '#page',
-  data: {
-    hash:hash
-  },
-  computed: {
-    ViewComponent () {
-      return routes[this.currentRoute]?routes[this.currentRoute].component:Home
-    },
-    currentRoute:function(){
-      return this.hash.location;
-    },
-    currentRouteColor:function(){
-      return routes[this.currentRoute]?routes[this.currentRoute].color||'#eee':'#eee';
-    }
-  },
-  render (h) { return h(this.ViewComponent) }
-})
+const routes = [
+  { path:"/settings", component: Settings },
+  { path:"/new",component: NewPost },
+  { path:"/",component: Public },
+  { path:"/friends",component: Friends },
+  { path:"/private",component: Private },
+  { path:"/mentions",component: Mentions },
+  { path:'/profile/:id',component: ssbProfile}
+]
 
-new Vue({
-  el:'#tabs',
+const router = new VueRouter({ routes,mode:'history' });
+
+// author info by ID
+window.cacheBus = new Vue({
   data:{
-    routes:routes,
-    hash:hash
-  },
-  computed:{
-    currentRoute:function(){
-      return hash.location;
-    },
-    currentRouteColor:function(){
-      return routes[this.currentRoute]?routes[this.currentRoute].color||'#eee':'#eee';
-    }
+    authors:{},
+    requestedAuthors:{}
   },
   methods:{
-    setHash(h){
-      this.hash.location=h;
+    fetchAuthorById(id){
+      if(!id){console.error('no ID passed to fetchAuthorById')}
+      if (this.requestedAuthors[id]){// somebody already asked for this.  Just wait for the event to fire.
+        return;
+      }
+      var ok = false;
+      var er = false;
+      this.requestedAuthors[id] = true;
+
+      fetch('/authorData/'+encodeURIComponent(id),{method:"GET"})
+      .then(res=>{
+        ok = res.ok;
+        if(ok){
+          return res.json()
+        }else{
+          return res.text()
+        }
+      })
+      .then(data=>{
+        if(!ok){
+          er = new Error(data);
+          throw er;
+        }else{
+          // stick it in the global store
+          this.authors[id] = data;
+          this.$emit('gotAuthor:'+id,data);
+        }
+      })
+      .catch(e=>{
+        // retry later
+        this.requestedAuthors[id] = false;
+      });
+    }
+  },
+  created(){
+    // register listeners
+    this.$on('requestAuthor',id=>{
+      this.fetchAuthorById(id);
+    })
+  }
+});
+
+new Vue({
+  el: '#app',
+  router,
+  data: {
+    tabInfo
+  },
+  computed: {
+    routeColor(){
+      var tab = this.tabInfo[this.$route.path];
+      if (!tab){tab = this.tabInfo['/']}
+      return tab.color;
     }
   }
 })
