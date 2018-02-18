@@ -118,10 +118,32 @@ app.put('/post',ensureAuthenticated,parseJsonBody,function(req,res,next){
 
 });
 
+app.put('/like',ensureAuthenticated,parseJsonBody,function(req,res,next){
+  if(!req.body){
+    return next(new Error('bad request body'))
+  }
+
+  ssbHelpers.createLike(sbot,req.body,function(er,post){
+    if(er){
+      return next(er);
+    }
+    res.status(200);
+    return res.json(post);
+  })
+})
+
 app.get('/authorData/:id',ensureAuthenticated,function(req,res,next){
   ssbHelpers.getAuthorData(sbot,req.params.id,function(er,data){
     if(er){return next(er)}
     return res.json(data);
+  })
+})
+
+app.get('/whoami',ensureAuthenticated,function(req,res,next){
+  ssbHelpers.whoami(sbot,function(er,id){
+    if(er){return next(er);}
+    res.status(200);
+    return res.send(id);
   })
 })
 

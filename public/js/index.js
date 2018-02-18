@@ -29,7 +29,7 @@ window.hrefForSsb= function(s){
 
 function getPosts(opts,callback){
   var opts = opts || {};
-  var count = opts.count || 20;
+  var count = opts.count || 5;
   var startTime = opts.startTime || Date.now();
 
   fetch(`/posts?count=${count}&start=${startTime}`).then(response=>{
@@ -44,7 +44,7 @@ function getPosts(opts,callback){
 
 function getFriendsPosts(opts,callback){
   var opts = opts || {};
-  var count = opts.count || 20;
+  var count = opts.count || 10;
   var startTime = opts.startTime || Date.now();
 
   fetch(`/friendsPosts?count=${count}&start=${startTime}`).then(response=>{
@@ -81,10 +81,10 @@ const Public = {
   template: `<post-list :posts="posts" :refresh="refresh" :more="more"></post-list>`,
   methods:{
     refresh(cb){
-      this.posts=[];
       this.cursor=Infinity;
       getPosts({},(er,data)=>{
-        if(er){cb(er);}
+        if(er){return cb(er);}
+        this.posts=[];
         data.forEach(p=>{
           this.posts.push(p)
           this.cursor = Math.min(p.timestamp,this.cursor)
@@ -95,7 +95,7 @@ const Public = {
     ,
     more(cb){
       getPosts({startTime:this.cursor},(er,data)=>{
-        if(er){cb(er);}
+        if(er){return cb(er);}
         data.forEach(p=>{
           this.cursor = Math.min(p.timestamp,this.cursor)
           this.posts.push(p)
@@ -114,10 +114,10 @@ const Friends = {
   template: `<post-list :posts="posts" :refresh="refresh" :more="more"></post-list>`,
   methods:{
     refresh(cb){
-      this.posts=[];
       this.cursor=Infinity;
       getFriendsPosts({},(er,data)=>{
-        if(er){cb(er);}
+        if(er){return cb(er);}
+        this.posts=[];
         data.forEach(p=>{
           this.posts.push(p)
           this.cursor = Math.min(p.timestamp,this.cursor)
@@ -128,7 +128,7 @@ const Friends = {
     ,
     more(cb){
       getFriendsPosts({startTime:this.cursor},(er,data)=>{
-        if(er){cb(er);}
+        if(er){return cb(er);}
         data.forEach(p=>{
           this.cursor = Math.min(p.timestamp,this.cursor)
           this.posts.push(p)
@@ -163,29 +163,34 @@ const Settings = { template: '<p>Settings page</p>' }
 
 const tabInfo = {
   '/new': {
-    title:"Compose",
+    title:"New",
     icon:"➕",
-    color:"hsl(160,100%,40%)"
+    color:"hsl(160,50%,40%)"
+  },
+  '/me':{
+    title:'Me',
+    icon:'🙂',
+    color:'hsl(337, 80%, 50%)'
   },
   '/': {
-    title:"Public",
+    title:"Timeline",
     icon:"🐚",
-    color:"hsl(190,100%,40%)"
+    color:"rgb(51, 102, 153)"
   },
   '/friends':{
     title:"Friends",
     icon:"😎",
-    color:'hsl(220,80%,50%)'
+    color:'hsl(250,50%,40%)'
   },
   '/private': {
     title:"Private",
     icon:"🔒",
-    color:"hsl(300,100%,40%)"
+    color:"hsl(300,50%,40%)"
   },
   '/mentions': {
     title:"Mentions",
     icon:"❗",
-    color:"hsl(0,100%,40%)"
+    color:"hsl(0,50%,40%)"
   },
   '/settings': {
     title:"Settings",
@@ -201,7 +206,8 @@ const routes = [
   { path:"/friends",component: Friends },
   { path:"/private",component: Private },
   { path:"/mentions",component: Mentions },
-  { path:'/profile/:id',component: ssbProfile}
+  { path:'/profile/:id',component: ssbProfile},
+  { path:'/me',component:myProfile}
 ]
 
 const router = new VueRouter({ routes,mode:'history' });
@@ -252,6 +258,23 @@ window.cacheBus = new Vue({
     this.$on('requestAuthor',id=>{
       this.fetchAuthorById(id);
     })
+
+    // get this user's data
+    var resok = false;
+    fetch('/whoami',{}).then(res=>{
+      resok = res.ok;
+      return res.text();
+    }).then(dat=>{
+      if (!resok){
+        throw new Error(dat)
+      }else{
+        localStorage['userid']=dat;// TODO this should really be set at login or smth
+        this.fetchAuthorById(dat);
+      }
+    }).catch(e=>{
+      console.error(e);
+    })
+
   }
 });
 
@@ -268,4 +291,4 @@ new Vue({
       return tab.color;
     }
   }
-})
+});

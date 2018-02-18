@@ -7,7 +7,7 @@
 
   <title>SSB Self-Hosted Web</title>
 
-  <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css'>
+  <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/journal/bulmaswatch.min.css'>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 
@@ -21,7 +21,7 @@
             <ul>
               <li v-for="tab,link in tabInfo"  :class="{'is-active': $route.path==link}">
                 <router-link :to="link"  :style="{'color': $route.path==link?routeColor:'white'}">
-                  {{tab.icon}}&#xFE0E;
+                  {{tab.icon}}&#xFE0F;
                   <span class="is-hidden-mobile">&nbsp;{{tab.title}}</span>
                 </router-link>
               </li>
@@ -45,6 +45,7 @@
 <script src="/js/component/new-post.js"></script>
 <script src="/js/component/post-list.js"></script>
 <script src="/js/component/ssb-profile.js"></script>
+<script src="/js/component/my-profile.js"></script>
 <script src="/js/index.js"></script>
 
 </body>

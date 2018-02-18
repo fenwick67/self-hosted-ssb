@@ -11,7 +11,7 @@ Vue.component('post-list',{
         </div>
         <button :disabled="loading" :class="{'is-loading':loading}" class="button is-link is-large is-fullwidth" @click="requestRefresh">Refresh Posts</button>
         <div v-for="post in filteredPosts" class="post-container" >
-          <ssb-post :post="post"></ssb-post>
+          <ssb-post :post="post" :key="post.key"></ssb-post>
         </div>
         <button :disabled="loading" :class="{'is-loading':loading}" v-if="posts.length > 0 && !noMore" class="button is-large is-link is-fullwidth" @click="requestMore">
           Load More
@@ -19,9 +19,16 @@ Vue.component('post-list',{
         <span class="level" v-if="noMore"><span class="level-item">That's all for now!</span></span>
       </div>
     </div>`,
-    props:['posts','more','refresh'],
+    props:['posts','more','refresh','defer'],
     data:function(){
       return {search:'',loading:true,noMore:false}
+    },
+    watch:{
+      defer:function(newVal,oldVal){
+        if(newVal && !oldVal){
+          this.requestRefresh();
+        }
+      }
     },
     computed:{
       reversedPosts:function(){
@@ -57,6 +64,8 @@ Vue.component('post-list',{
       }
     },
     created(){
-      this.requestRefresh();
+      if (!this.defer){
+        this.requestRefresh();
+      }
     }
 })

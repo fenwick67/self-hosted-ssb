@@ -1,6 +1,7 @@
 
 html,body{
   height:100%;
+  max-width:100%;
 }
 .app{
   height:100%;
@@ -22,7 +23,9 @@ html,body{
   height:3.5rem;
 }
 .top>*{
-  flex:1 1 auto;
+  flex-basis:auto;
+  flex-grow:1;
+  flex-shrink:1;
   max-width:50rem;
 }
 .has-shadow{
@@ -37,8 +40,12 @@ html,body{
   justify-content:center;
 }
 .posts{
-  max-width:50rem;
+  max-width:40rem;
   margin:1rem;
+}
+.post{
+  padding:0.5rem 0;
+  max-width:40rem;
 }
 #tabs li:not(.is-active) a:hover{
   background:rgba(255,255,255,0.3);
@@ -50,4 +57,7 @@ html,body{
   border-radius:5px;
   overflow:hidden;
   box-shadow:0 0 2px 1px rgba(0,0,0,0.3);
+}
+.post .media-content{
+  max-width:calc(100% - 5rem);
 }

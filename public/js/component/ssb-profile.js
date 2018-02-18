@@ -19,7 +19,13 @@ function getUserPosts(opts,callback){
   })
 }
 
-var ssbProfile = Vue.component('ssb-profile',{
+const ssbProfile = Vue.component('ssb-profile',{
+  props:{
+    feedid:{
+      required:false,
+      type:String
+    }
+  },
   data:function(){
     return {
       cacheBus:window.cacheBus,
@@ -29,9 +35,19 @@ var ssbProfile = Vue.component('ssb-profile',{
       author:{}
     }
   },
+  watch:{
+    feedid(newVal,oldVal){
+      console.log('feedid set to '+newVal);
+      if (!newVal){
+        return;
+      }
+      this.id = newVal;
+      this.whenGotId();
+    }
+  },
   template:`
-    <post-list :more="more" :posts="posts" :refresh="refresh">
-      <div class="box post">
+    <post-list :more="more" :posts="posts" :refresh="refresh" :defer="!this.id">
+      <div class="post">
           <article class="media">
             <a class="media-left">
               <ssb-avatar large :src=" author.image?hrefForBlobAddress(author.image):'https://bulma.io/images/placeholders/128x128.png' "></ssb-avatar>
@@ -47,15 +63,13 @@ var ssbProfile = Vue.component('ssb-profile',{
               </div>
             </div>
           </article>
-
       </div>
-
     </post-list>
   `,
   methods:{
     more(cb){
       getUserPosts({id:this.id,start:this.cursor},(er,data)=>{
-        if(er){cb(er);}
+        if(er){return cb(er);}
         data.forEach(p=>{
           this.cursor = Math.min(p.sequence,this.cursor)
           this.posts.push(p)
@@ -65,7 +79,7 @@ var ssbProfile = Vue.component('ssb-profile',{
     },
     refresh(cb){
       getUserPosts({id:this.id},(er,data)=>{
-        if(er){cb(er);}
+        if(er){return cb(er);}
         this.posts=[];
         data.forEach(p=>{
           this.cursor = Math.min(p.sequence,this.cursor)
@@ -74,28 +88,33 @@ var ssbProfile = Vue.component('ssb-profile',{
         cb(null,data);
       });
     },
-    hrefForBlobAddress(addr){
-      return window.hrefForBlobAddress(addr);
-    }
-  },
-  created(){
-    if(this.$route && this.$route.params.id){
-      this.id = this.$route.params.id
-
-      // fetch author info
+    whenGotId(){
+      // fetch author info and set my author to that
       if (this.cacheBus.authors[this.id]){
         this.author = this.cacheBus.authors[this.id];
         return;
       }
+
       this.cacheBus.$emit('requestAuthor',this.id);
       var v = this;
       this.cacheBus.$on('gotAuthor:'+this.id,function(a){
         v.$forceUpdate();
         v.author = a;
       });
-    }else{
-      return console.error('missing an id , ruhroh raggy')
-    }
 
+    },
+    hrefForBlobAddress(addr){
+      return window.hrefForBlobAddress(addr);
+    }
+  },
+  created(){
+    if(this.feedid){
+      this.id = this.feedid;
+      this.whenGotId();
+    }
+    if(this.$route && this.$route.params.id ){
+      this.id = this.$route.params.id;
+      this.whenGotId();
+    }
   }
 });
