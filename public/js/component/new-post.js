@@ -70,7 +70,7 @@ const postEditor = Vue.component('post-editor',{
         <ssb-avatar :userid="myUserid"></ssb-avatar>
       </div>
       <div class="media-content">
-        <div class="field" v-if="!parentChannel">
+        <div class="field" v-if="!root">
           <label class="label">Channel (optional)
             <input type="text" class="input" placeholder="new-people" v-model="channel"></input>
           </label>

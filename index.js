@@ -118,6 +118,14 @@ app.put('/post',ensureAuthenticated,parseJsonBody,function(req,res,next){
 
 });
 
+app.get('/thread/:id',ensureAuthenticated,function(req,res,next){
+  ssbHelpers.getThread(sbot,req.params.id,function(er,data){
+    if(er){return next(er)}
+    res.status(200);
+    res.json(data);
+  })
+})
+
 app.put('/like',ensureAuthenticated,parseJsonBody,function(req,res,next){
   if(!req.body){
     return next(new Error('bad request body'))

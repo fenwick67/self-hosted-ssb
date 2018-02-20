@@ -207,7 +207,8 @@ const routes = [
   { path:"/private",component: Private },
   { path:"/mentions",component: Mentions },
   { path:'/profile/:id',component: ssbProfile},
-  { path:'/me',component:myProfile}
+  { path:'/me',component:myProfile},
+  { path:'/post/:id', component:postById }
 ]
 
 const router = new VueRouter({ routes,mode:'history' });

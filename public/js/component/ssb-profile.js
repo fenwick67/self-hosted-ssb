@@ -43,6 +43,12 @@ const ssbProfile = Vue.component('ssb-profile',{
       }
       this.id = newVal;
       this.whenGotId();
+    },
+    '$route' (to, from) {
+      if(this.$route && this.$route.params.id ){
+        this.id = this.$route.params.id;
+        this.whenGotId();
+      }
     }
   },
   template:`
