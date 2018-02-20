@@ -21,7 +21,7 @@ Vue.component('post-list',{
     </div>`,
     props:['posts','more','refresh','defer'],
     data:function(){
-      return {search:'',loading:true,noMore:false}
+      return {search:'', loading:true, noMore:false, scrollListener:null}
     },
     watch:{
       defer:function(newVal,oldVal){
@@ -66,6 +66,23 @@ Vue.component('post-list',{
     created(){
       if (!this.defer){
         this.requestRefresh();
+      }
+      // also register scroll listener!
+      function getScrollFraction(){
+        var se = document.scrollingElement;
+        return se.scrollTop/(se.scrollHeight-se.clientHeight);
+      }
+
+      this.scrollListener = document.addEventListener('scroll',e=>{
+        if(!this.noMore && !this.loading && getScrollFraction() > 0.9){
+          this.requestMore();
+        }
+      });
+
+    },
+    destroyed(){
+      if(this.scrollListener){
+        document.removeEventListener(this.scrollListener);
       }
     }
 })

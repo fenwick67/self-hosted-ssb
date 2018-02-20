@@ -110,7 +110,7 @@ Vue.component('ssb-post',{
               </span>
               <small><a @click="showAuthor">{{post.author}}</a></small>
               <span v-if="post.authorIsFriend">&nbsp;<span class="tag is-success">Following</span>&nbsp;</span>
-              <br><br>
+              <p v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId}}</a></p>
               <span v-html="post.content.text" class="content"></span>
               <span v-for="url in imageUrls">
                 <img :src="url"></img>
@@ -199,6 +199,12 @@ Vue.component('ssb-post',{
     },
     everLiked(){
       return this.likedInThePast || this.liked;
+    },
+    parentPostId(){
+      return this.post && this.post.content && this.post.content.root;
+    },
+    parentPostLink(){
+      return this.parentPostId && window.hrefForSsb(this.parentPostId);
     }
   },
   methods:{

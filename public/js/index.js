@@ -12,6 +12,9 @@ window.hrefForChannel = function(c){
 window.hrefForBlobAddress = function(addr){
   return `/blob/${ encodeURIComponent(addr) }`
 }
+window.hrefForThread = function(id){
+  return `/post/${encodeURIComponent(id).replace('.','%2E')}`
+}
 
 window.hrefForSsb= function(s){
   var s = s;
@@ -21,6 +24,8 @@ window.hrefForSsb= function(s){
     return window.hrefForUserid(s);
   }else if(s.indexOf('&') == 0){
     return window.hrefForBlobAddress(s);
+  }else if(s.indexOf('%') == 0){
+    return window.hrefForThread(s);
   }else{
     // not a SSB URL at all!
     return s;
