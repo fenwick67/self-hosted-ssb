@@ -7,7 +7,7 @@
 
   <title>SSB Self-Hosted Web</title>
 
-  <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/journal/bulmaswatch.min.css'>
+  <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/lumen/bulmaswatch.min.css'>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 
@@ -30,7 +30,9 @@
         </div>
       </div><!-- end #tabs -->
       <div class="bottom">
-        <div id="sidebar"></div>
+        <div id="sidebar">
+          <search-bar></search-bar>
+        </div>
         <router-view></router-view>
       </div>
     </div>
@@ -38,15 +40,22 @@
   </div><!-- end app -->
 
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/3.0.1/vue-router.min.js"></script>
+<script src="/js/component/container-view.js"></script>
 <script src="/js/component/ssb-avatar.js"></script>
 <script src="/js/component/ssb-post.js"></script>
+<script src="/js/component/container-view.js"></script>
 <script src="/js/component/new-post.js"></script>
 <script src="/js/component/post-list.js"></script>
 <script src="/js/component/ssb-profile.js"></script>
 <script src="/js/component/my-profile.js"></script>
 <script src="/js/component/post-by-id.js"></script>
+<script src="/js/component/channel-by-id.js"></script>
+<script src="/js/component/settings.js"></script>
+<script src="/js/component/login.js"></script>
+<script src="/js/component/search-bar.js"></script>
 <script src="/js/index.js"></script>
 
 </body>

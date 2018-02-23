@@ -9,14 +9,7 @@ function getUserPosts(opts,callback){
   var count = opts.count || 20;
   var start = opts.start || Infinity;
 
-  fetch(`/userPosts?count=${count}&start=${start}&id=${encodeURIComponent(id)}`).then(response=>{
-    return response.json()
-  }).then(posts=>{
-    callback(null,posts);
-  }).catch(e=>{
-    console.error(e);
-    callback(e);
-  })
+  authorizedFetch(`/userPosts?count=${count}&start=${start}&id=${encodeURIComponent(id)}`,{},callback)
 }
 
 const ssbProfile = Vue.component('ssb-profile',{
@@ -60,11 +53,13 @@ const ssbProfile = Vue.component('ssb-profile',{
             </a>
             <div class="media-content">
               <div class="content">
-                <h1>{{author.name}}</h1>
-                <p>
-                  <span v-if="author.isFriend">&nbsp;<span class="tag is-success">Following</span>&nbsp;</span>
-                  <a>{{id}}</a>
-                </p>
+                <span class="level" v-if="author.name || author.isFriend">
+                  <span class="level-left">
+                    <span v-if="author.name" class="level-item is-size-2">{{author.name}}</span>
+                    <span v-if="author.isFriend" class="level-item tag is-success is-large">Friend</span>
+                  </span>
+                </span>
+                <div>{{id}}</div>
                 <p v-if="author.description" v-html="author.description"></p>
               </div>
             </div>

@@ -28,53 +28,58 @@ window.hrefForSsb= function(s){
     return window.hrefForThread(s);
   }else{
     // not a SSB URL at all!
-    return s;
+    return false;
   }
+}
+
+// wrap window.fetch with our JWT
+window.authorizedFetch = function(url,options,done){
+
+  var done = done || function(){console.warn('you should probably have a callback for this operation');console.log(arguments);}
+  var opts = JSON.parse(JSON.stringify(options));
+  opts.headers = opts.headers || {};
+  opts.headers['Authorization'] = 'Bearer '+localStorage['jwt'];
+
+  var resok = false;
+  var response;
+  fetch(url,opts).then(res=>{
+    response = res;
+    resok = res.ok;
+    return res.text();
+  }).then(data=>{
+    if(!resok){
+      if (response.status === 401){
+        router.push('/login')
+      }
+      return done(new Error(data));
+    }
+    var ret = data;
+    try{ret = JSON.parse(data)}
+    catch(e){ret=data;}
+    return done(null,ret);
+  })
+
 }
 
 function getPosts(opts,callback){
   var opts = opts || {};
   var count = opts.count || 5;
   var startTime = opts.startTime || Date.now();
-
-  fetch(`/posts?count=${count}&start=${startTime}`).then(response=>{
-    return response.json()
-  }).then(posts=>{
-    callback(null,posts);
-  }).catch(e=>{
-    console.error(e);
-    callback(e);
-  })
+  window.authorizedFetch(`/posts?count=${count}&start=${startTime}`,{},callback);
 }
 
 function getFriendsPosts(opts,callback){
   var opts = opts || {};
   var count = opts.count || 10;
   var startTime = opts.startTime || Date.now();
-
-  fetch(`/friendsPosts?count=${count}&start=${startTime}`).then(response=>{
-    return response.json()
-  }).then(posts=>{
-    callback(null,posts);
-  }).catch(e=>{
-    console.error(e);
-    callback(e);
-  })
+  window.authorizedFetch(`/friendsPosts?count=${count}&start=${startTime}`,{},callback);
 }
 
 function getEntries(callback,opts){
   var opts = opts || {};
   var count = opts.count || 400;
   var startTime = opts.startTime || Date.now();
-
-  fetch(`/all?count=${count}&start=${startTime}`).then(response=>{
-    return response.json()
-  }).then(entries=>{
-    callback(null,entries);
-  }).catch(e=>{
-    console.error(e);
-    callback(e);
-  })
+  window.authorizedFetch(`/all?count=${count}&start=${startTime}`,{},callback);
 }
 
 
@@ -159,9 +164,8 @@ const Private = {
 
 }
 
-const NotFound = { template: '<p>Page not found</p>' }
-const Mentions = { template: '<p>Mentions page</p>' }
-const Settings = { template: '<p>Settings page</p>' }
+const NotFound = { template: '<container-view>Page not found</container-view>' }
+const Mentions = { template: '<container-view>Mentions page</container-view>' }
 
 
 // tabs and routing ///////////////////////////////////////
@@ -170,33 +174,36 @@ const tabInfo = {
   '/new': {
     title:"New",
     icon:"➕",
-    color:"hsl(160,50%,40%)"
+    color:"#43ac6a"
   },
   '/me':{
     title:'Me',
     icon:'🙂',
-    color:'hsl(337, 80%, 50%)'
+    color:'#f04124'
   },
   '/': {
     title:"Timeline",
     icon:"🐚",
-    color:"rgb(51, 102, 153)"
+    color:"#3273dc"
   },
   '/friends':{
     title:"Friends",
     icon:"😎",
-    color:'hsl(250,50%,40%)'
+    color:'#008cba'
   },
-  '/private': {
+/*
+'/private': {
     title:"Private",
     icon:"🔒",
     color:"hsl(300,50%,40%)"
   },
+
   '/mentions': {
     title:"Mentions",
     icon:"❗",
     color:"hsl(0,50%,40%)"
   },
+  */
   '/settings': {
     title:"Settings",
     icon:"⚙️",
@@ -213,7 +220,9 @@ const routes = [
   { path:"/mentions",component: Mentions },
   { path:'/profile/:id',component: ssbProfile},
   { path:'/me',component:myProfile},
-  { path:'/post/:id', component:postById }
+  { path:'/post/:id', component:postById },
+  { path:'/channel/:id',component:channelById},
+  { path:'/login',component:loginView}
 ]
 
 const router = new VueRouter({ routes,mode:'history' });
@@ -234,51 +243,18 @@ window.cacheBus = new Vue({
       var er = false;
       this.requestedAuthors[id] = true;
 
-      fetch('/authorData/'+encodeURIComponent(id),{method:"GET"})
-      .then(res=>{
-        ok = res.ok;
-        if(ok){
-          return res.json()
-        }else{
-          return res.text()
-        }
+      window.authorizedFetch('/authorData/'+encodeURIComponent(id),{method:"GET"},(er,data)=>{
+        if(er){throw er};
+        this.authors[id] = data;
+        this.$emit('gotAuthor:'+id,data);
+
       })
-      .then(data=>{
-        if(!ok){
-          er = new Error(data);
-          throw er;
-        }else{
-          // stick it in the global store
-          this.authors[id] = data;
-          this.$emit('gotAuthor:'+id,data);
-        }
-      })
-      .catch(e=>{
-        // retry later
-        this.requestedAuthors[id] = false;
-      });
     }
   },
   created(){
     // register listeners
     this.$on('requestAuthor',id=>{
       this.fetchAuthorById(id);
-    })
-
-    // get this user's data
-    var resok = false;
-    fetch('/whoami',{}).then(res=>{
-      resok = res.ok;
-      return res.text();
-    }).then(dat=>{
-      if (!resok){
-        throw new Error(dat)
-      }else{
-        localStorage['userid']=dat;// TODO this should really be set at login or smth
-        this.fetchAuthorById(dat);
-      }
-    }).catch(e=>{
-      console.error(e);
     })
 
   }
@@ -296,5 +272,19 @@ new Vue({
       if (!tab){tab = this.tabInfo['/']}
       return tab.color;
     }
+  },
+  created(){
+    // get this user's data
+    var resok = false;
+    var res = null;
+
+    window.authorizedFetch('/whoami',{},(er,who)=>{
+      if(er){
+        this.$router.push('/login');// log me in
+      }else{
+        window.cacheBus.fetchAuthorById(who);// look me up
+      }
+    })
+
   }
 });

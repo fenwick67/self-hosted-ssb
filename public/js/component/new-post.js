@@ -6,30 +6,13 @@ const putPost = function(post,done){
   var er;
   var resData = null;
 
-  fetch('/post',{
+  authorizedFetch('/post',{
     method:'PUT',
     body:JSON.stringify(post),
     headers:{
       'Content-Type': 'application/json',
     }
-  }).then(res=>{
-    ok = res.ok;
-    if(ok){
-      return res.json();
-    }else{
-      return res.text();
-    }
-  }).then(data=>{
-    if (ok){
-      resData = data;
-    }else{
-      er = new Error('Bad response from API: \n'+data);
-    }
-  }).catch(e=>{
-    er = e;
-  }).finally(v=>{
-    done(er,resData)
-  });
+  },done);
 
 }
 
@@ -147,10 +130,8 @@ const postEditor = Vue.component('post-editor',{
 // new post page is simple
 const NewPost = {
   template:`
-  <div class="posts-container">
-    <div class="posts">
-      <post-editor></post-editor>
-    </div>
-  </div>
+  <container-view>
+    <post-editor></post-editor>
+  </container-view>
   `
 }

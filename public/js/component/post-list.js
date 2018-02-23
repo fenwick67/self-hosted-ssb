@@ -1,27 +1,25 @@
 
 Vue.component('post-list',{
     template:`
-    <div class="posts-container">
-      <div class="posts">
-        <div class="post-container">
-          <slot></slot>
-        </div>
-        <div class="field">
-          <input type="text" class="input" placeholder="Filter" v-model="search"></input>
-        </div>
-        <button :disabled="loading" :class="{'is-loading':loading}" class="button is-link is-large is-fullwidth" @click="requestRefresh">Refresh Posts</button>
-        <div v-for="post in filteredPosts" class="post-container" >
-          <ssb-post :post="post" :key="post.key"></ssb-post>
-        </div>
-        <button :disabled="loading" :class="{'is-loading':loading}" v-if="posts.length > 0 && !noMore" class="button is-large is-link is-fullwidth" @click="requestMore">
-          Load More
-        </button>
-        <span class="level" v-if="noMore"><span class="level-item">That's all for now!</span></span>
+    <container-view>
+      <div class="post-container">
+        <slot></slot>
       </div>
-    </div>`,
+      <div class="field">
+        <input type="text" class="input" placeholder="Filter" v-model="search"></input>
+      </div>
+      <button :disabled="loading" :class="{'is-loading':loading}" class="button is-link is-large is-fullwidth" @click="requestRefresh">Refresh Posts</button>
+      <div v-for="post in filteredPosts" class="post-container" >
+        <ssb-post :post="post" :key="post.key"></ssb-post>
+      </div>
+      <button :disabled="loading" :class="{'is-loading':loading}" v-if="posts.length > 0 && !noMore" class="button is-large is-link is-fullwidth" @click="requestMore">
+        Load More
+      </button>
+      <span class="level" v-if="noMore"><span class="level-item">That's all for now!</span></span>
+    </container-view>`,
     props:['posts','more','refresh','defer'],
     data:function(){
-      return {search:'', loading:true, noMore:false, scrollListener:null}
+      return {search:'', loading:true, noMore:false, scrollInterval:null}
     },
     watch:{
       defer:function(newVal,oldVal){
@@ -72,17 +70,17 @@ Vue.component('post-list',{
         var se = document.scrollingElement;
         return se.scrollTop/(se.scrollHeight-se.clientHeight);
       }
-
-      this.scrollListener = document.addEventListener('scroll',e=>{
-        if(!this.noMore && !this.loading && getScrollFraction() > 0.9){
+      var checkPosition = ()=>{
+        if(!this.noMore && !this.loading && getScrollFraction() > 0.95){
           this.requestMore();
         }
-      });
+      }
+      this.scrollInterval = setInterval(checkPosition,1000)
 
     },
     destroyed(){
-      if(this.scrollListener){
-        document.removeEventListener(this.scrollListener);
+      if(this.scrollInterval){
+        clearInterval(this.scrollInterval);
       }
     }
 })

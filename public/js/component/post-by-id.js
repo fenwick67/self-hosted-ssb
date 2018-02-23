@@ -1,25 +1,14 @@
 function getThread(id,callback){
 
   var id = encodeURIComponent(id).replace('.','%2E');
-  fetch(`/thread/${id}`).then(response=>{
-    return response.json()
-  }).then(posts=>{
-    callback(null,posts);
-  }).catch(e=>{
-    console.error(e);
-    callback(e);
-  })
+  authorizedFetch(`/thread/${id}`,{},callback);
 }
 
 var postById = Vue.component('post-by-id',{
   template:`
-  <div class="posts-container">
-    <div class="posts">
-      <div class="post-container">
-        <ssb-post v-if="post" :post="post"></ssb-post>
-      </div>
-    </div>
-  </div>
+  <container-view>
+    <ssb-post v-if="post" :post="post"></ssb-post>
+  </container-view>
   `,
   data:function(){
     return {id:'',post:null}

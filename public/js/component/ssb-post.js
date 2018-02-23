@@ -61,23 +61,13 @@ function likePost(post,done){
   }
 
   // create a new entry
-  fetch('/like',{
+  authorizedFetch('/like',{
     method:'PUT',
     body:JSON.stringify(entry),
     headers:{
       'Content-Type': 'application/json',
     }
-  }).then(res=>{
-    ok = res.ok;
-    if(ok){return res.json()}
-    else{return res.text()}
-  }).then(data=>{
-    if(!ok){return cb(new Error(data))}
-    return cb(null,data);
-  })
-  .catch(e=>{
-    cb(e);
-  })
+  },cb);
 
 }
 
@@ -92,7 +82,7 @@ Vue.component('ssb-post',{
       userAvatar:'',
       cacheBus:window.cacheBus,
       authorInfo:{},
-      liked:false,
+      likedInSession:false,
       replying:false
     }
   },
@@ -102,25 +92,23 @@ Vue.component('ssb-post',{
           <ssb-avatar :src=" authorInfo.image?hrefForBlobAddress(authorInfo.image):'https://bulma.io/images/placeholders/128x128.png' "></ssb-avatar>
         </a>
         <div class="media-content">
+          <span class="">
+            <span class="is-size-3">{{authorInfo.name}}</span>
+            <a @click="showAuthor" :title="post.author">{{post.author.slice(0,10)}}&hellip;</a>
+            <span v-if="authorInfo.isFriend" class="level-item tag is-success">Friend</span>
+            </span>
+          </span>
           <div class="content">
-            <p>
-              <span class="is-size-3" v-if="authorInfo.name">
-                <a @click="showAuthor">{{authorInfo.name}}</a>
-                <br>
-              </span>
-              <small><a @click="showAuthor">{{post.author}}</a></small>
-              <span v-if="post.authorIsFriend">&nbsp;<span class="tag is-success">Following</span>&nbsp;</span>
-              <p v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId}}</a></p>
-              <span v-html="post.content.text" class="content"></span>
-              <span v-for="url in imageUrls">
-                <img :src="url"></img>
-              </span>
-            </p>
+            <small v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId}}</a></small>
+            <span v-html="post.content.text" class="content"></span>
+            <span v-for="url in imageUrls">
+              <img :src="url"></img>
+            </span>
           </div>
           <nav class="level is-mobile">
             <div class="level-left">
               <button @click="like" class="level-item button" aria-label="like" :disabled="everLiked" :class="{'is-link':everLiked}">
-                Like<span v-if="!child">&nbsp;({{nLikes}})</span>
+                Like&nbsp;({{nLikes}})
               </button>
               <b class="level-item">&nbsp;·&nbsp;</b>
               <button class="level-item button is-outlined" aria-label="reply" @click="reply">Reply</button>
@@ -161,16 +149,38 @@ Vue.component('ssb-post',{
       return (this.post && this.post._metadata)?this.post._metadata:{};
     },
     likes(){
+
       if(this.post._metadata && this.post._metadata.links){
-        return this.post._metadata.links.filter(l=>{// TODO account for unvotes duplicates etc
-          return l.rel == 'vote' && l.value && l.value.content && l.value.content.vote && l.value.content.vote.value == 1;
-        })
+        var usersLiked = [];
+        var likes = [];
+
+        this.post._metadata.links.filter(l=>{// TODO account for unvotes duplicates etc
+          return l.rel == 'vote' && l.value && l.value.content && l.value.content.vote && typeof l.value.content.vote.value == 'number';
+        }).forEach(l=>{// links only
+          var s = l.source
+          if (l.value.content.vote.value == 1){// like
+            if(usersLiked.indexOf(s) === -1){
+              usersLiked.push(s);
+              likes.push(l);
+            }
+          }else if (l.value.content.vote.value == 0){// unlike?
+            var  idx=usersLiked.indexOf(s)
+            if(idx != -1){
+              usersLiked.splice(idx,1);
+              likes.splice(idx,1);
+            }
+          }
+
+        });
+
+        return likes;
+
       }
       // otherwise nope
       return [];
     },
     nLikes(){
-      return this.likes.length + (this.liked?1:0);
+      return this.likes.length + (this.likedInSession?1:0);
     },
     replies(){
       if(this.metadata && this.metadata.links){
@@ -187,7 +197,7 @@ Vue.component('ssb-post',{
       }
     },
     likedInThePast(){
-      if(this.liked){// liked from this sessoin
+      if(this.likedInSession){// liked from this sessoin
         return true;
       }
       // liked in the past on the SSB log
@@ -198,7 +208,7 @@ Vue.component('ssb-post',{
 
     },
     everLiked(){
-      return this.likedInThePast || this.liked;
+      return this.likedInThePast || this.likedInSession;
     },
     parentPostId(){
       return this.post && this.post.content && this.post.content.root;
@@ -240,7 +250,7 @@ Vue.component('ssb-post',{
         console.info('you already liked this');
         return;
       }
-      this.liked = true;
+      this.likedInSession = true;
       likePost(this.post);
     },
     reply(){
@@ -251,21 +261,23 @@ Vue.component('ssb-post',{
     }
   },
   created(){
+    // cancel replying when the post editor close button is pressed
+    this.$on('cancelEdit',this.cancelReply);
+
     // fetch author info for this post (if it doesn't exist)
     if(!this.post.author){return;}
     if (this.cacheBus.authors[this.post.author]){
       this.authorInfo = this.cacheBus.authors[this.post.author];
       return;
     }
-    this.cacheBus.$emit('requestAuthor',this.post.author);
     var v = this;
     this.cacheBus.$on('gotAuthor:'+this.post.author,function(e){
       v.$forceUpdate();
       v.authorInfo = e;
     });
+    this.cacheBus.$emit('requestAuthor',this.post.author);
 
-    // cancel replying when the post editor close button is pressed
-    this.$on('cancelEdit',this.cancelReply);
+
 
   }
 })

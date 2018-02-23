@@ -8,14 +8,89 @@ const history = require('connect-history-api-fallback');
 
 const parseJsonBody = require('body-parser').json()
 const app = express();
-var sbot = null;
 
+// passport
+const passport = require('passport');
+const jwt = require('jsonwebtoken')
+const passportJWT = require("passport-jwt");
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
+
+var sbot = null;
+var login = require('./lib/login')
+
+
+app.use(compression({}))// defaults for now
+
+// Passport config
+var jwtOptions = {
+  jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey : 'NOBODY WILL EVER BE ABLE TO GUESS THIS',// TODO: this needs to change ASAP
+  algorithms:['HS512']
+}
+
+// where the magic happens
+passport.use(new JwtStrategy(jwtOptions,function(payload, done) {
+    // it's fine
+    return done(null,payload);
+  }
+));
+
+
+/*
 // TODO.  Only run on localhost for now.
 function ensureAuthenticated(req,res,next){
   return next(null);
 }
+*/
 
-app.use(compression({}))// defaults for now
+var ensureAuthenticated = passport.authenticate('jwt', { session: false });
+
+
+app.use(passport.initialize());
+app.post('/login',parseJsonBody,function(req,res,next){
+  var password;
+  var newPassword;
+
+  if(req.body.password && req.body.newPassword){
+    password = req.body.password;
+    newPassword = req.body.newPassword;
+  }else if(req.body.password){
+    password = req.body.password;
+  }else{
+    return next(new Error('password not provided'))
+  }
+
+
+  // try login
+  login.authorize(password,function(er,ok){
+    if(er){
+      res.status(500)
+      res.send('error authenticating, please try again '+er);
+      return;
+    }else{
+      if(ok){// password matched
+        // NOW we need to check whoami to  get the userid
+        ssbHelpers.whoami(sbot,function(er,id){
+          if(er){
+            res.status(500);
+            res.send('error authenticating, please try again '+er);
+            return;
+          }
+          var payload = {userid:id};
+          var token = jwt.sign(payload, jwtOptions.secretOrKey, {algorithm:'HS512'});
+          res.status(200);
+          res.json({token: token, userid:id});
+        })
+
+      }else{// password didn't match
+        res.status(401)
+        res.send("Incorrect Login")
+      }
+    }
+  });
+
+});
 
 // simple callbacky methods to get stuff
 
@@ -152,6 +227,24 @@ app.get('/whoami',ensureAuthenticated,function(req,res,next){
     if(er){return next(er);}
     res.status(200);
     return res.send(id);
+  })
+})
+
+app.get('/channelPosts/:id',ensureAuthenticated,function(req,res,next){
+  var count = 100;
+  var start = Date.now() + 60*1000;
+  var channel = req.params.id;
+
+  if(req.query && req.query.count){
+    count = Number(req.query.count);
+  }
+  if(req.query && req.query.start){
+    start = Number(req.query.start);
+  }
+
+  ssbHelpers.getChannel(sbot,{start,count,channel},function(er,results){
+    if(er){return next(er);}
+    res.status(200).json(results);
   })
 })
 

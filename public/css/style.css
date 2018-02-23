@@ -41,6 +41,7 @@ html,body{
 }
 .posts{
   max-width:40rem;
+  flex-grow:1;
   margin:1rem;
 }
 .post{
