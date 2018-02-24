@@ -5,21 +5,19 @@ const Settings = Vue.component('settings-view',{
   template: `
     <container-view>
 
-      <div class="subtitle">Add a Pub Invite</div>
-      <div class="field has-addons">
-        <p class="control is-expanded">
-          <input v-model="inviteCode" class="input" type="text" placeholder="put invite code here">
-        </p>
-        <p class="control">
-          <button @click="addInvite" class="button is-link">Submit Invite</button>
-        </p>
+      <div>
+        <div class="subtitle">Add a Pub Invite</div>
+        <div class="field has-addons">
+          <p class="control is-expanded">
+            <input v-model="inviteCode" class="input" type="text" placeholder="put invite code here">
+          </p>
+          <p class="control">
+            <button @click="addInvite" class="button is-link">Submit Invite</button>
+          </p>
+        </div>
       </div>
-
-      <hr>
-
+      
       <change-password/>
-
-      <hr>
 
       <button class="button is-danger is-outlined is-fullwidth" @click="logout">Log Out</button>
 

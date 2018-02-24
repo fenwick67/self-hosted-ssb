@@ -6,14 +6,9 @@ html,body{
 .app{
   height:100%;
   width:100%;
-  display:flex;
-  flex-direction:row;
 }
-.app>*{
-  flex:1 1 auto;
+.app>*{/* .main */
   height:100%;
-  display:flex;
-  flex-direction:column;
 }
 .top{
   display:flex;
@@ -31,23 +26,6 @@ html,body{
 .has-shadow{
   box-shadow:0 0 5px 1px rgba(0,0,0,0.3) inset;
 }
-.post-container{
-  margin:1rem 0;
-}
-.posts-container{
-  display:flex;
-  width:100%;
-  justify-content:center;
-}
-.posts{
-  max-width:40rem;
-  flex-grow:1;
-  margin:1rem;
-}
-.post{
-  padding:0.5rem 0;
-  max-width:40rem;
-}
 #tabs li:not(.is-active) a:hover{
   background:rgba(255,255,255,0.3);
 }
@@ -64,11 +42,30 @@ html,body{
   height:100%;
   object-fit: cover;
 }
-.post .media-content{
-  max-width:calc(100% - 5rem);
+
+/*
+layout
+*/
+.container-view{
+  display:grid;
+  grid-template-columns:auto 40rem auto;
+  grid-row-gap: 1rem;
+  margin:1rem 0;
+}
+.container-view>*{
+  grid-column-start: 2;
+  grid-column-end:2;
 }
 .post{
   animation:swoos-in 0.2s;
+}
+.post .media-content{
+  max-width:calc(100% - 5rem);
+}
+@media all and (max-width:40rem){
+  .container-view{
+    grid-template-columns:0 100% 0;
+  }
 }
 
 @keyframes swoos-in{

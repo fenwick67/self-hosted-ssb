@@ -2,14 +2,14 @@
 Vue.component('post-list',{
     template:`
     <container-view>
-      <div class="post-container">
+      <div class="">
         <slot></slot>
       </div>
       <div class="field">
         <input type="text" class="input" placeholder="Filter" v-model="search"></input>
       </div>
       <button :disabled="loading" :class="{'is-loading':loading}" class="button is-link is-large is-fullwidth" @click="requestRefresh">Refresh Posts</button>
-      <div v-for="post in filteredPosts" class="post-container" >
+      <div v-for="post in filteredPosts" class="" >
         <ssb-post :post="post" :key="post.key"></ssb-post>
       </div>
       <button :disabled="loading" :class="{'is-loading':loading}" v-if="posts.length > 0 && !noMore" class="button is-large is-link is-fullwidth" @click="requestMore">
