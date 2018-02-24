@@ -71,11 +71,11 @@ Vue.component('post-list',{
         return se.scrollTop/(se.scrollHeight-se.clientHeight);
       }
       var checkPosition = ()=>{
-        if(!this.noMore && !this.loading && getScrollFraction() > 0.95){
+        if(!this.noMore && !this.loading && getScrollFraction() > 0.7){
           this.requestMore();
         }
       }
-      this.scrollInterval = setInterval(checkPosition,1000)
+      this.scrollInterval = setInterval(checkPosition,100)
 
     },
     destroyed(){

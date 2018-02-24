@@ -53,10 +53,11 @@ const ssbProfile = Vue.component('ssb-profile',{
             </a>
             <div class="media-content">
               <div class="content">
-                <span class="level" v-if="author.name || author.isFriend">
+                <span class="level">
                   <span class="level-left">
                     <span v-if="author.name" class="level-item is-size-2">{{author.name}}</span>
-                    <span v-if="author.isFriend" class="level-item tag is-success is-large">Friend</span>
+                    <button @click="unfollow" v-if= "author.isFriend && !isMe" class="level-item button is-success">Following</button>
+                    <button @click="follow"   v-if="!author.isFriend && !isMe" class="level-item button is-dark">Not Following</button>
                   </span>
                 </span>
                 <div>{{id}}</div>
@@ -106,6 +107,38 @@ const ssbProfile = Vue.component('ssb-profile',{
     },
     hrefForBlobAddress(addr){
       return window.hrefForBlobAddress(addr);
+    },
+    follow(){
+      if(!confirm('Are you sure you want to follow this user?')){return}
+
+      authorizedFetch('/follow',{method:"PUT",body:this.id},(er)=>{
+        if(er){alert(er);return;}
+        this.author.isFriend = true;
+      })
+    },
+    unfollow(){
+      if(!confirm('Are you sure you want to unfollow this user?')){return}
+
+      authorizedFetch('/unfollow',{method:"PUT",body:this.id},(er)=>{
+        if(er){alert(er);return;}
+        this.author.isFriend = false;
+      })
+    },
+    block(){
+      if(!confirm('Are you sure you want to block this user?')){return}
+
+      authorizedFetch('/block',{method:"PUT",body:this.id},(er)=>{
+        if(er){alert(er);return;}
+        this.author.isBlocked = true;
+      })
+    },
+    unblock(){
+      if(!confirm('Are you sure you want to unblock this user?')){return}
+
+      authorizedFetch('/unblock',{method:"PUT",body:this.id},(er)=>{
+        if(er){alert(er);return;}
+        this.author.isBlocked = false;
+      })
     }
   },
   created(){
@@ -116,6 +149,11 @@ const ssbProfile = Vue.component('ssb-profile',{
     if(this.$route && this.$route.params.id ){
       this.id = this.$route.params.id;
       this.whenGotId();
+    }
+  },
+  computed:{
+    isMe:function(){
+      return this.id == localStorage['userid']
     }
   }
 });

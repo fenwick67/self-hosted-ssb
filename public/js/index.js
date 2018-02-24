@@ -257,6 +257,11 @@ window.cacheBus = new Vue({
       this.fetchAuthorById(id);
     })
 
+    this.$on('forceRequestAuthor',id=>{
+      this.requestedAuthors[id]={};
+      this.fetchAuthorById(id);
+    })
+
   }
 });
 

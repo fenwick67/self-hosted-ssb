@@ -94,12 +94,13 @@ Vue.component('ssb-post',{
         <div class="media-content">
           <span class="">
             <span class="is-size-3">{{authorInfo.name}}</span>
+            <small v-if="isMe">(you)</small>
             <a @click="showAuthor" :title="post.author">{{post.author.slice(0,10)}}&hellip;</a>
             <span v-if="authorInfo.isFriend" class="level-item tag is-success">Friend</span>
             </span>
           </span>
           <div class="content">
-            <small v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId}}</a></small>
+            <small v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId.slice(0,10)}}&hellip;</a></small>
             <span v-html="post.content.text" class="content"></span>
             <span v-for="url in imageUrls">
               <img :src="url"></img>
@@ -110,12 +111,8 @@ Vue.component('ssb-post',{
               <button @click="like" class="level-item button" aria-label="like" :disabled="everLiked" :class="{'is-link':everLiked}">
                 Like&nbsp;({{nLikes}})
               </button>
-              <b class="level-item">&nbsp;·&nbsp;</b>
               <button class="level-item button is-outlined" aria-label="reply" @click="reply">Reply</button>
-              <b class="level-item">&nbsp;·&nbsp;</b>
               <span class="level-item">{{ age }}</span>
-
-              <b class="level-item" v-if="post.content.channel && !child">&nbsp;·&nbsp;</b>
               <a class="level-item" v-if="post.content.channel && !child" :href="hrefForChannel(post.content.channel)">#{{ post.content.channel }}</a>
               <br>
             </div>
@@ -137,6 +134,9 @@ Vue.component('ssb-post',{
       </article>
   `,
   computed:{
+    isMe(){
+      return window.localStorage['userid'] == this.post.author;
+    },
     age(){
       return timeSince(this.post.timestamp)
     },

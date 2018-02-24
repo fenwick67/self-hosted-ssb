@@ -7,6 +7,7 @@ const compression = require('compression');
 const history = require('connect-history-api-fallback');
 
 const parseJsonBody = require('body-parser').json()
+const parsePlaintextBody = require('body-parser').text()
 const app = express();
 
 // passport
@@ -25,7 +26,7 @@ app.use(compression({}))// defaults for now
 // Passport config
 var jwtOptions = {
   jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey : 'NOBODY WILL EVER BE ABLE TO GUESS THIS',// TODO: this needs to change ASAP
+  secretOrKey : login.getSessionSecretSync(),// TODO: this needs to change ASAP
   algorithms:['HS512']
 }
 
@@ -61,20 +62,18 @@ app.post('/login',parseJsonBody,function(req,res,next){
     return next(new Error('password not provided'))
   }
 
-
-  // try login
-  login.authorize(password,function(er,ok){
+  function passwordChecked(er,ok){
     if(er){
       res.status(500)
       res.send('error authenticating, please try again '+er);
       return;
     }else{
       if(ok){// password matched
-        // NOW we need to check whoami to  get the userid
+        // NOW we need to check whoami to  get the userid and B Out
         ssbHelpers.whoami(sbot,function(er,id){
           if(er){
             res.status(500);
-            res.send('error authenticating, please try again '+er);
+            res.send('server error while authenticating, please try again '+er);
             return;
           }
           var payload = {userid:id};
@@ -82,13 +81,20 @@ app.post('/login',parseJsonBody,function(req,res,next){
           res.status(200);
           res.json({token: token, userid:id});
         })
-
       }else{// password didn't match
         res.status(401)
         res.send("Incorrect Login")
       }
     }
-  });
+  }
+
+  if (newPassword){
+    // try change password
+    login.changePassword(password,newPassword,passwordChecked);
+  }else{
+    // try login
+    login.authorize(password,passwordChecked);
+  }
 
 });
 
@@ -201,6 +207,45 @@ app.get('/thread/:id',ensureAuthenticated,function(req,res,next){
   })
 })
 
+app.put('/addInvite',ensureAuthenticated,parsePlaintextBody,function(req,res,next){
+  if(!req.body){
+    return next(new Error('bad request body'))
+  }
+
+  ssbHelpers.addInvite(sbot,req.body,function(er){
+    if(er){return next(er)}
+    res.status(200).send();
+  });
+})
+
+app.put('/follow',ensureAuthenticated,parsePlaintextBody,function(req,res,next){
+  if(!req.body){
+    return next(new Error('bad request body'))
+  }
+
+  ssbHelpers.follow(sbot,req.body,function(er){
+    if(er){
+      return next(er);
+    }
+    res.status(200);
+    res.send();
+  })
+})
+
+app.put('/unfollow',ensureAuthenticated,parsePlaintextBody,function(req,res,next){
+  if(!req.body){
+    return next(new Error('bad request body'))
+  }
+
+  ssbHelpers.unfollow(sbot,req.body,function(er){
+    if(er){
+      return next(er);
+    }
+    res.status(200);
+    res.send();
+  })
+})
+
 app.put('/like',ensureAuthenticated,parseJsonBody,function(req,res,next){
   if(!req.body){
     return next(new Error('bad request body'))
@@ -247,6 +292,21 @@ app.get('/channelPosts/:id',ensureAuthenticated,function(req,res,next){
     res.status(200).json(results);
   })
 })
+
+app.put('/profile',ensureAuthenticated,parseJsonBody,function(req,res,next){
+
+  if(!req.body || !req.body.id || !req.body.value || !req.body.key){
+    return next(new Error('bad request body'))
+  }
+
+  ssbHelpers.setProfileData(sbot,req.body,function(er){
+    if(er){
+      res.status(500).send(er);
+    }else{
+      res.status(200).send()
+    }
+  })
+});
 
 // NOTE: cannot authenticate img requests 🤔
 app.get('/blob/:id',function(req,res,next){
@@ -295,7 +355,7 @@ party(function(er,ssb){
   sbot = ssb;
 
 
-  app.listen(8080,'127.0.0.1',function(er){
+  app.listen(8080,'0.0.0.0',function(er){
     console.log('listenin on 8080 :)')
   })
 });

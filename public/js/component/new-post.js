@@ -65,7 +65,7 @@ const postEditor = Vue.component('post-editor',{
         </div>
         <div class="field is-grouped">
           <div class="control">
-          <a class="button is-link is-fullwidth" @click="submit" :disabled="loading">Submit</a>
+          <a class="button is-link is-fullwidth" @click="submit" :disabled="loading || text.length < 1">Submit</a>
             </div>
           <div class="control">
             <a v-if="cancellable" class="button is-link is-fullwidth is-danger" @click="cancel" :disabled="loading">Cancel</a>
