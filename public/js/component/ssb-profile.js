@@ -47,22 +47,26 @@ const ssbProfile = Vue.component('ssb-profile',{
   template:`
     <post-list :more="more" :posts="posts" :refresh="refresh" :defer="!this.id">
       <div class="post">
-          <article class="media">
-            <a class="media-left">
-              <ssb-avatar large :src=" author.image?hrefForBlobAddress(author.image):'https://bulma.io/images/placeholders/128x128.png' "></ssb-avatar>
-            </a>
+          <article class="media box">
+
             <div class="media-content">
-              <div class="content">
-                <span class="level">
-                  <span class="level-left">
-                    <span v-if="author.name" class="level-item is-size-2">{{author.name}}</span>
-                    <button @click="unfollow" v-if= "author.isFriend && !isMe" class="level-item button is-success">Following</button>
-                    <button @click="follow"   v-if="!author.isFriend && !isMe" class="level-item button is-dark">Not Following</button>
-                  </span>
+              <div class="post-header">
+                <a>
+                  <ssb-avatar size="large" :userid="id"/>
+                </a>
+                <span v-if="author.name" class="is-size-2">{{author.name}}</span>
+                <span>
+                  <button @click="unfollow" v-if= "author.isFriend && !isMe" class="button is-success">Following</button>
+                  <button @click="follow" v-if="!author.isFriend && !isMe" class="button is-dark">Not Following</button>
                 </span>
-                <div>{{id}}</div>
+              </div>
+              <div class="breakword">{{id}}</div>
+
+
+              <div class="content">
                 <p v-if="author.description" v-html="author.description"></p>
               </div>
+
             </div>
           </article>
       </div>

@@ -1,0 +1,135 @@
+// chill bulma theme
+
+@import "../node_modules/bulma/sass/utilities/initial-variables";
+// 1. Import the initial variables
+@import "../node_modules/bulma/sass/utilities/initial-variables";
+@import "../node_modules/bulma/sass/utilities/functions";
+
+
+$green: #79bd9a;
+$red: #df405a;
+$orange: #ff5050;
+$yellow: #ca8f04;
+
+// almost black
+$almost-black:#17191f;
+// the dark bg
+$dark-background: #282c37;
+// pale blue
+$pale-blue: #9baec8;
+// Almost white blue
+$almost-white: #d9e1e8;
+// electric blue
+$electric-blue: #2b90d9;
+
+// 2. Set your own initial variables
+// Update blue
+$blue: $electric-blue;
+// Add pink and its invert
+
+// 3. Set the derived variables
+$primary: $electric-blue;
+$link:$pale-blue;
+
+// Use the existing orange as the danger color
+$danger: $orange;
+$error: $red;
+$success: $green;
+
+
+@function getThemeGreys($colorIndex) {
+  @return mix($almost-black,$almost-white,percentage($colorIndex/10.0));
+}
+
+$black: getThemeGreys(0.0);
+$black-bis: getThemeGreys(1.0);
+$black-ter: getThemeGreys(2.0);
+$grey-darker: getThemeGreys(3.0);
+$grey-dark: getThemeGreys(4.0);
+$grey: getThemeGreys(5.0);
+$grey-light: getThemeGreys(6.0);
+$grey-lighter: getThemeGreys(7.0);
+$white-ter: getThemeGreys(8.0);
+$white-bis: getThemeGreys(9.0);
+$white: getThemeGreys(10.0);
+
+// text and other colors
+$background:$almost-black;
+$text:$almost-white;
+
+// calculate inverts
+$link-invert:	$dark-background;
+$orange-invert:	findColorInvert($orange);
+$red-invert:	findColorInvert($red);
+$green-invert: $dark-background;
+$button-background-color:$dark-background;
+
+// TODO
+/*
+$input-color
+$button-border-color: $grey-lighter !default
+$light
+$dark
+$text-light
+$text-strong
+$pre
+$pre-background
+$link-focus
+$link-hover
+$link-active
+$link-active-border
+*/
+
+// 5. Add new color variables to the color map.
+@import "../node_modules/bulma/sass/utilities/derived-variables.sass";
+/*
+$addColors: (
+  "twitter":($twitter, $twitter-invert),
+  "linkedin": ($linkedin, $linkedin-invert),
+  "github": ($github, $github-invert)
+);
+$colors: map-merge($colors, $addColors);
+*/
+
+
+// 6. Import the rest of Bulma
+@import "../node_modules/bulma/bulma";
+
+
+// actual baseline CSS styles
+
+.box{
+  box-shadow:none;
+  background:$dark-background;
+}
+html,body,:root{
+  background:$background;
+  min-height:100%;
+}
+.tabs,.hero{
+  background:$dark-background;
+}
+.tabs li{
+  position: relative;
+}
+.tabs li a{
+  border-bottom:solid 4px transparent;
+}
+.tabs li.is-active a{
+  color:$electric-blue;
+  transition:border-color 0.3s;
+  border-bottom:solid 4px $electric-blue;
+}
+.tabs li::after{
+  position: absolute;
+  content: '';
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  box-shadow:0 0 0 0 transparent;
+  transition:box-shadow 0.3s;
+}
+.tabs li.is-active::after{
+  box-shadow: 0 12px 18px 10px #2b90d9;
+}

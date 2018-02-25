@@ -26,5 +26,8 @@
     "serve-static": "^1.13.2",
     "ssb-markdown": "^3.5.0",
     "ssb-party": "^0.5.1"
+  },
+  "devDependencies": {
+    "bulma": "^0.6.2"
   }
 }

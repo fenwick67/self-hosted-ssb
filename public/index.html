@@ -4,11 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17191f">
 
   <title>SSB Self-Hosted Web</title>
 
-  <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/lumen/bulmaswatch.min.css'>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel='stylesheet prefetch' href='/css/bulma.css'>
+  <link rel="stylesheet prefetch" href="/css/style.css">
 </head>
 
 <body>
@@ -16,12 +17,12 @@
   <div class="app" id="app">
     <div class="main">
       <div id="tabs">
-        <div class="top hero has-shadow" style="transition:all 0.5s ease"  :style="{'background':routeColor}">
-          <div class="tabs is-fullwidth is-boxed">
+        <div class="top hero" style="transition:all 0.5s ease">
+          <div class="tabs is-fullwidth">
             <ul>
-              <li v-for="tab,link in tabInfo"  :class="{'is-active': $route.path==link}">
-                <router-link :to="link"  :style="{'color': $route.path==link?routeColor:'white'}">
-                  {{tab.icon}}&#xFE0F;
+              <li v-for="tab,link in tabInfo" :class="{'is-active': $route.path==link}">
+                <router-link :to="link">
+                  {{tab.icon}}&#xFE0E;
                   <span class="is-hidden-mobile">&nbsp;{{tab.title}}</span>
                 </router-link>
               </li>
@@ -40,9 +41,10 @@
   </div><!-- end app -->
 
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/3.0.1/vue-router.min.js"></script>
+
+<!--
 <script src="/js/component/container-view.js"></script>
 <script src="/js/component/ssb-avatar.js"></script>
 <script src="/js/component/ssb-post.js"></script>
@@ -58,6 +60,11 @@
 <script src="/js/component/search-bar.js"></script>
 <script src="/js/component/settings.js"></script>
 <script src="/js/index.js"></script>
+-->
+<!-- must run buildsh to get the bundle -->
+
+<!---->
+  <script src="/js/bundle.js"></script>
 
 </body>
 </html>

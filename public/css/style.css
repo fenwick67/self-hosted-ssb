@@ -1,10 +1,13 @@
 
 html,body{
-  height:100%;
+  min-height:100%;
   max-width:100%;
 }
+html{
+  background:#f6f6f6;
+}
 .app{
-  height:100%;
+  min-height:100%;
   width:100%;
 }
 .app>*{/* .main */
@@ -26,22 +29,23 @@ html,body{
 .has-shadow{
   box-shadow:0 0 5px 1px rgba(0,0,0,0.3) inset;
 }
-#tabs li:not(.is-active) a:hover{
-  background:rgba(255,255,255,0.3);
-}
 #sidebar{
   position:relative;
 }
 .avatar{
-  border-radius:8%;
+  border-radius:15%;
   overflow:hidden;
-  box-shadow:0 0 2px 1px rgba(0,0,0,0.3);
+  padding:0;
+}
+.avatar.is-friend{
+  /*TODO this class exists - do something with it*/
 }
 .avatar img{
   width:100%;
   height:100%;
   object-fit: cover;
 }
+
 
 /*
 layout
@@ -50,24 +54,61 @@ layout
   display:grid;
   grid-template-columns:auto 40rem auto;
   grid-row-gap: 1rem;
-  margin:1rem 0;
+  margin:1rem 0.5rem 0;
+}
+.container-view:last-child{
+  margin-bottom: 1rem;
 }
 .container-view>*{
   grid-column-start: 2;
   grid-column-end:2;
 }
-.post{
-  animation:swoos-in 0.2s;
-}
-.post .media-content{
-  max-width:calc(100% - 5rem);
-}
-@media all and (max-width:40rem){
+
+@media all and (max-width:41rem){
   .container-view{
     grid-template-columns:0 100% 0;
   }
 }
 
+/*
+post styles
+*/
+.post,.reply{
+  margin-top:0;
+  padding-top:1rem;
+}
+.post{
+  animation:swoos-in 0.2s;
+}
+.reply{
+  margin-left:2rem;
+}
+.post .media-content{
+  max-width:100%;
+  width:100%
+}
+.post-header{
+  max-width:100%;
+  display:grid;
+  margin-bottom:1rem;
+  grid-template-columns:auto 1fr;
+}
+.post-header>*{
+  display:inline-block;
+  word-break:break-word;
+  grid-column:2;
+}
+.post-header>*:first-child{
+  margin-right:1rem;
+  justify-self:start;
+  grid-column:1;
+  grid-row-start:1;
+  grid-row-end:3;
+}
+
+/*
+animations
+*/
 @keyframes swoos-in{
   0%{
     opacity:0;
@@ -77,4 +118,12 @@ layout
     opactiy:1;
     transform:translateX(0);
   }
+}
+
+/*
+utils
+*/
+.breakword{
+  word-break: break-all;
+  word-wrap: break-word;
 }

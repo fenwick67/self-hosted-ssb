@@ -9,7 +9,7 @@ Vue.component('search-bar',{
         <input v-model="query" class="input" type="text" placeholder="Enter a ref here">
       </p>
       <p class="control">
-        <button @click="search" :disabled="!valid" class="button is-link">
+        <button @click="search" :disabled="!valid" class="button is-primary">
           Go
         </button>
       </p>

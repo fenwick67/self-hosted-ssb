@@ -6,8 +6,11 @@ function getThread(id,callback){
 
 var postById = Vue.component('post-by-id',{
   template:`
-  <container-view>
-    <ssb-post v-if="post" :post="post"></ssb-post>
+  <container-view v-if="post">
+    <div class="box">
+      <div class="breakword">Viewing thread ID {{post.key}}</div>
+    </div>
+    <ssb-post :post="post"></ssb-post>
   </container-view>
   `,
   data:function(){

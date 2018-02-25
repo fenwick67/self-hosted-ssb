@@ -2,17 +2,17 @@
 Vue.component('post-list',{
     template:`
     <container-view>
-      <div class="">
-        <slot></slot>
-      </div>
-      <div class="field">
-        <input type="text" class="input" placeholder="Filter" v-model="search"></input>
-      </div>
-      <button :disabled="loading" :class="{'is-loading':loading}" class="button is-link is-large is-fullwidth" @click="requestRefresh">Refresh Posts</button>
+      <slot></slot>
+      ${/*// not sure if I should really have a refresh or filter button.
+        <button :disabled="loading" :class="{'is-loading':loading}" class="button is-link is-fullwidth" @click="requestRefresh">Refresh Posts</button>
+        <div class="">
+          <input type="text" class="input" placeholder="Filter" v-model="search"></input>
+        </div>
+      */''}
       <div v-for="post in filteredPosts" class="" >
         <ssb-post :post="post" :key="post.key"></ssb-post>
       </div>
-      <button :disabled="loading" :class="{'is-loading':loading}" v-if="posts.length > 0 && !noMore" class="button is-large is-link is-fullwidth" @click="requestMore">
+      <button :disabled="loading" :class="{'is-loading':loading}" v-if="!noMore" class="button is-link is-fullwidth" @click="requestMore">
         Load More
       </button>
       <span class="level" v-if="noMore"><span class="level-item">That's all for now!</span></span>

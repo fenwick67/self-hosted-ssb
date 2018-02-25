@@ -5,7 +5,7 @@ const Settings = Vue.component('settings-view',{
   template: `
     <container-view>
 
-      <div>
+      <div class="box">
         <div class="subtitle">Add a Pub Invite</div>
         <div class="field has-addons">
           <p class="control is-expanded">
@@ -16,9 +16,11 @@ const Settings = Vue.component('settings-view',{
           </p>
         </div>
       </div>
-      
-      <change-password/>
 
+      <div class="box">
+        <change-password/>
+      </div>
+      
       <button class="button is-danger is-outlined is-fullwidth" @click="logout">Log Out</button>
 
     </container-view>

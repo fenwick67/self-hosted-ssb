@@ -178,7 +178,7 @@ const tabInfo = {
   },
   '/me':{
     title:'Me',
-    icon:'🙂',
+    icon:'👤',
     color:'#f04124'
   },
   '/': {
@@ -188,7 +188,7 @@ const tabInfo = {
   },
   '/friends':{
     title:"Friends",
-    icon:"😎",
+    icon:"👥",
     color:'#008cba'
   },
 /*

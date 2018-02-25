@@ -5,4 +5,4 @@ This is a work in progress but might be a good reference for somebody getting in
 
 ## TODOs / notes
 
-for some reason clicking on a user's feed from another user's feed doesn't work?  Will investigate.
+clicking on a user's feed from another user's feed doesn't work because the route doesn't change, need to eatch route in view controller

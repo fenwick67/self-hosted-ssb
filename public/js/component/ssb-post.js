@@ -87,18 +87,21 @@ Vue.component('ssb-post',{
     }
   },
   template:`
-      <article class="media" :class="{'post':!child}">
-        <a class="media-left" @click="showAuthor" >
-          <ssb-avatar :src=" authorInfo.image?hrefForBlobAddress(authorInfo.image):'https://bulma.io/images/placeholders/128x128.png' "></ssb-avatar>
-        </a>
+      <article class="media" :class="{'post':!child,'reply':child,'box':!child}">
         <div class="media-content">
-          <span class="">
-            <span class="is-size-3">{{authorInfo.name}}</span>
-            <small v-if="isMe">(you)</small>
-            <a @click="showAuthor" :title="post.author">{{post.author.slice(0,10)}}&hellip;</a>
-            <span v-if="authorInfo.isFriend" class="level-item tag is-success">Friend</span>
+
+          <div class="post-header">
+            <a class="" @click="showAuthor" >
+              <ssb-avatar :userid="post.author"/>
+            </a>
+            <span class="">
+                <span class="is-size-4">{{authorInfo.name}}</span>
+                <small v-if="isMe">(you)</small>
+                <span v-if="authorInfo.isFriend" class="tag is-success">Following</span>
             </span>
-          </span>
+            <a @click="showAuthor" :title="post.author">{{post.author.slice(0,10)}}&hellip;</a>
+          </div>
+
           <div class="content">
             <small v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId.slice(0,10)}}&hellip;</a></small>
             <span v-html="post.content.text" class="content"></span>
@@ -108,10 +111,10 @@ Vue.component('ssb-post',{
           </div>
           <nav class="level is-mobile">
             <div class="level-left">
-              <button @click="like" class="level-item button" aria-label="like" :disabled="everLiked" :class="{'is-link':everLiked}">
+              <button @click="like" class="level-item button is-primary" aria-label="like" :disabled="everLiked" :class="{'is-link':everLiked}">
                 Like&nbsp;({{nLikes}})
               </button>
-              <button class="level-item button is-outlined" aria-label="reply" @click="reply">Reply</button>
+              <button class="level-item button is-link" aria-label="reply" @click="reply">Reply</button>
               <span class="level-item">{{ age }}</span>
               <a class="level-item" v-if="post.content.channel && !child" :href="hrefForChannel(post.content.channel)">#{{ post.content.channel }}</a>
               <br>
