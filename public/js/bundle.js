@@ -709,7 +709,7 @@ function likePost(post,done){
   // create a new entry
   authorizedFetch('/like',{
     method:'PUT',
-    body:JSON.stringify(entry),    
+    body:entry,    
   },cb);
 
 }

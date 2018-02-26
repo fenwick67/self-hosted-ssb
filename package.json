@@ -17,6 +17,7 @@
     "connect-history-api-fallback": "^1.5.0",
     "eff-diceware-passphrase": "^1.0.0",
     "ejs": "^2.5.7",
+    "express": "^4.16.2",
     "ip": "^1.1.5",
     "jsonwebtoken": "^8.1.1",
     "lodash": "^4.17.5",
