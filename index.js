@@ -32,7 +32,7 @@ const mainPort = argv.port || process.env.PORT || 8080;
 // TODO this is a bit of a cluster
 
 const domain = argv.domain || process.env.DOMAIN || '/';
-var imageDomain = argv.domain || process.env.IMAGEDOMAIN || 'http://localhost:'+imagePort;
+var imageDomain = argv.imagedomain || process.env.IMAGEDOMAIN || 'http://localhost:'+imagePort;
 
 const listenAddress = argv.listenaddress || process.env.LISTENADDRESS || '127.0.0.1'
 
