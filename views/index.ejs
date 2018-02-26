@@ -14,6 +14,18 @@
 
 <body>
 
+  <div id="modal">
+    <div class="modal lightbox" :class="{'is-active':open}">
+      <div class="modal-background" @click="hide"></div>
+      <div class="modal-content">
+          <p class="image">
+            <img :src="src" :alt="alt">
+          </p>
+      </div>
+      <button class="modal-close is-large" aria-label="close" @click="hide"></button>
+    </div>
+  </div>
+
   <div class="app" id="app">
     <div class="main">
       <div id="tabs">
@@ -43,6 +55,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/3.0.1/vue-router.min.js"></script>
+
+<script> window.imageDomain = "<%= imageDomain %>";</script>
 
 <!--
 <script src="/js/component/container-view.js"></script>

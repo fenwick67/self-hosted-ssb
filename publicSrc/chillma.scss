@@ -62,7 +62,22 @@ $link-invert:	$dark-background;
 $orange-invert:	findColorInvert($orange);
 $red-invert:	findColorInvert($red);
 $green-invert: $dark-background;
+
+// custom stuffs
 $button-background-color:$dark-background;
+$modal-background-background-color:rgba($almost-black,0.8);
+$modal-background-background-color:rgba($almost-black,0.8);
+
+// fix the modal into a lightbox
+.modal-close{
+  background:$dark-background;
+}
+.modal .modal-close::before,.modal .modal-close::after{  
+  background-color:$almost-white;
+}
+.lightbox .modal-content{
+  width:1000px
+}
 
 // TODO
 /*

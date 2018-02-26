@@ -12,6 +12,10 @@ function getUserPosts(opts,callback){
   authorizedFetch(`/userPosts?count=${count}&start=${start}&id=${encodeURIComponent(id)}`,{},callback)
 }
 
+function setProfileData(data,callback){
+  authorizedFetch(`/profile`,{method:'PUT',body:data},callback);
+}
+
 const ssbProfile = Vue.component('ssb-profile',{
   props:{
     feedid:{
@@ -25,7 +29,9 @@ const ssbProfile = Vue.component('ssb-profile',{
       id:'',
       posts:[],
       cursor:Infinity,
-      author:{}
+      author:{},
+      newName:'',
+      editingName:false
     }
   },
   watch:{
@@ -54,12 +60,24 @@ const ssbProfile = Vue.component('ssb-profile',{
                 <a>
                   <ssb-avatar size="large" :userid="id"/>
                 </a>
-                <span v-if="author.name" class="is-size-2">{{author.name}}</span>
+                <span v-if="author.name && !editingName" class="is-size-2 has-text-weight-bold">{{author.name}}</span>
+                <span v-if="editingName" >
+                  <div class="field has-addons">
+                    <div class="control">
+                      <input class="input" type="text" v-model="newName"></input>
+                    </div>
+                    <div class="control">
+                      <button class="button is-success" @click="saveName">Save</button>
+                    </div>
+                  </div>
+                </span>
                 <span>
+                  <button class="button" :class="editingName?'is-danger':''" @click="toggleEditName">{{editingName?'Cancel Editing':'Edit Name'}}</button>
                   <button @click="unfollow" v-if= "author.isFriend && !isMe" class="button is-success">Following</button>
                   <button @click="follow" v-if="!author.isFriend && !isMe" class="button is-dark">Not Following</button>
                 </span>
               </div>
+
               <div class="breakword">{{id}}</div>
 
 
@@ -143,6 +161,25 @@ const ssbProfile = Vue.component('ssb-profile',{
         if(er){alert(er);return;}
         this.author.isBlocked = false;
       })
+    },
+    saveName(){
+      var id = this.id;
+
+      var name = this.newName;
+      if(!confirm("Set this users' name to '"+name+"'?")){
+        this.editingName = false;
+        return;
+      }      
+      
+      setProfileData({id:id,key:'name',value:name},(er)=>{
+        if(er){alert(er);return;}
+        this.author.name = name;
+        this.editingName = false;
+      })
+
+    },
+    toggleEditName(){
+      this.editingName = !this.editingName;
     }
   },
   created(){

@@ -1,4 +1,13 @@
 @charset "UTF-8";
+.modal-close {
+  background: #282c37; }
+
+.modal .modal-close::before, .modal .modal-close::after {
+  background-color: #d9e1e8; }
+
+.lightbox .modal-content {
+  width: 1000px; }
+
 /*
 $input-color
 $button-border-color: $grey-lighter !default
@@ -3817,7 +3826,7 @@ a.dropdown-item {
   position: absolute;
   right: 0;
   top: 0;
-  background-color: rgba(217, 225, 232, 0.86); }
+  background-color: rgba(23, 25, 31, 0.8); }
 
 .modal-content,
 .modal-card {

@@ -63,10 +63,7 @@ function likePost(post,done){
   // create a new entry
   authorizedFetch('/like',{
     method:'PUT',
-    body:JSON.stringify(entry),
-    headers:{
-      'Content-Type': 'application/json',
-    }
+    body:JSON.stringify(entry),    
   },cb);
 
 }
@@ -95,28 +92,28 @@ Vue.component('ssb-post',{
               <ssb-avatar :userid="post.author"/>
             </a>
             <span class="">
-                <span class="is-size-4">{{authorInfo.name}}</span>
+                <span class="is-size-4 has-text-weight-bold">{{authorInfo.name}}</span>
                 <small v-if="isMe">(you)</small>
                 <span v-if="authorInfo.isFriend" class="tag is-success">Following</span>
             </span>
-            <a @click="showAuthor" :title="post.author">{{post.author.slice(0,10)}}&hellip;</a>
+            <a @click="showAuthor" :title="post.author" class="has-text-weight-light">{{post.author.slice(0,10)}}&hellip;</a>
           </div>
 
           <div class="content">
             <small v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId.slice(0,10)}}&hellip;</a></small>
             <span v-html="post.content.text" class="content"></span>
             <span v-for="url in imageUrls">
-              <img :src="url"></img>
+              <img class="zoomable" :src="url" @click="showModal(url)"></img>
             </span>
           </div>
           <nav class="level is-mobile">
             <div class="level-left">
-              <button @click="like" class="level-item button is-primary" aria-label="like" :disabled="everLiked" :class="{'is-link':everLiked}">
+              <button @click="like" class="level-item button" aria-label="like" :disabled="everLiked" :class="{'is-primary':everLiked,'is-link':!everLiked}">
                 Like&nbsp;({{nLikes}})
               </button>
               <button class="level-item button is-link" aria-label="reply" @click="reply">Reply</button>
-              <span class="level-item">{{ age }}</span>
-              <a class="level-item" v-if="post.content.channel && !child" :href="hrefForChannel(post.content.channel)">#{{ post.content.channel }}</a>
+              <span class="level-item has-text-weight-light">{{ age }}</span>
+              <a class="level-item breakword " v-if="post.content.channel && !child" :href="hrefForChannel(post.content.channel)">#{{ post.content.channel }}</a>
               <br>
             </div>
           </nav>
@@ -236,12 +233,9 @@ Vue.component('ssb-post',{
               m.name.toLowerCase().indexOf('png') > -1
             )
           )
-        ) && this.hrefForBlobAddress(m.link);
+        ) && window.hrefForBlobAddress(m.link);
     }
     ,
-    hrefForBlobAddress(addr){
-      return `/blob/${ encodeURIComponent(addr) }`
-    },
     showAuthor(){
       this.$router.push(window.hrefForUserid(this.post.author))
     },
@@ -261,6 +255,9 @@ Vue.component('ssb-post',{
     },
     cancelReply(){
       this.replying = false;
+    },
+    showModal(url){
+      window.modalManager.showImage(url)
     }
   },
   created(){

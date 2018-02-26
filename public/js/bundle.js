@@ -187,7 +187,25 @@ var loginView = Vue.component('login-el',{
   }
 
 });
-const myProfile = Vue.component('my-profile',{
+window.modalManager = new Vue({
+  el:'#modal',
+  methods:{
+      showImage(url,alt){
+        this.src = url;
+        if(alt){this.alt=alt}
+        this.open=true;
+      },
+      hide(){
+          this.open=false;
+      }
+  },
+  data:{
+      open:false,
+      src:'',
+      alt:''
+  }
+
+});const myProfile = Vue.component('my-profile',{
   template:`
     <ssb-profile v-if="id.length > 0" :feedid="id"></ssb-profile>
   `,
@@ -691,10 +709,7 @@ function likePost(post,done){
   // create a new entry
   authorizedFetch('/like',{
     method:'PUT',
-    body:JSON.stringify(entry),
-    headers:{
-      'Content-Type': 'application/json',
-    }
+    body:JSON.stringify(entry),    
   },cb);
 
 }
@@ -723,28 +738,28 @@ Vue.component('ssb-post',{
               <ssb-avatar :userid="post.author"/>
             </a>
             <span class="">
-                <span class="is-size-4">{{authorInfo.name}}</span>
+                <span class="is-size-4 has-text-weight-bold">{{authorInfo.name}}</span>
                 <small v-if="isMe">(you)</small>
                 <span v-if="authorInfo.isFriend" class="tag is-success">Following</span>
             </span>
-            <a @click="showAuthor" :title="post.author">{{post.author.slice(0,10)}}&hellip;</a>
+            <a @click="showAuthor" :title="post.author" class="has-text-weight-light">{{post.author.slice(0,10)}}&hellip;</a>
           </div>
 
           <div class="content">
             <small v-if="!child && parentPostId">In thread: <a :href="parentPostLink">{{parentPostId.slice(0,10)}}&hellip;</a></small>
             <span v-html="post.content.text" class="content"></span>
             <span v-for="url in imageUrls">
-              <img :src="url"></img>
+              <img class="zoomable" :src="url" @click="showModal(url)"></img>
             </span>
           </div>
           <nav class="level is-mobile">
             <div class="level-left">
-              <button @click="like" class="level-item button is-primary" aria-label="like" :disabled="everLiked" :class="{'is-link':everLiked}">
+              <button @click="like" class="level-item button" aria-label="like" :disabled="everLiked" :class="{'is-primary':everLiked,'is-link':!everLiked}">
                 Like&nbsp;({{nLikes}})
               </button>
               <button class="level-item button is-link" aria-label="reply" @click="reply">Reply</button>
-              <span class="level-item">{{ age }}</span>
-              <a class="level-item" v-if="post.content.channel && !child" :href="hrefForChannel(post.content.channel)">#{{ post.content.channel }}</a>
+              <span class="level-item has-text-weight-light">{{ age }}</span>
+              <a class="level-item breakword " v-if="post.content.channel && !child" :href="hrefForChannel(post.content.channel)">#{{ post.content.channel }}</a>
               <br>
             </div>
           </nav>
@@ -864,12 +879,9 @@ Vue.component('ssb-post',{
               m.name.toLowerCase().indexOf('png') > -1
             )
           )
-        ) && this.hrefForBlobAddress(m.link);
+        ) && window.hrefForBlobAddress(m.link);
     }
     ,
-    hrefForBlobAddress(addr){
-      return `/blob/${ encodeURIComponent(addr) }`
-    },
     showAuthor(){
       this.$router.push(window.hrefForUserid(this.post.author))
     },
@@ -889,6 +901,9 @@ Vue.component('ssb-post',{
     },
     cancelReply(){
       this.replying = false;
+    },
+    showModal(url){
+      window.modalManager.showImage(url)
     }
   },
   created(){
@@ -926,6 +941,10 @@ function getUserPosts(opts,callback){
   authorizedFetch(`/userPosts?count=${count}&start=${start}&id=${encodeURIComponent(id)}`,{},callback)
 }
 
+function setProfileData(data,callback){
+  authorizedFetch(`/profile`,{method:'PUT',body:data},callback);
+}
+
 const ssbProfile = Vue.component('ssb-profile',{
   props:{
     feedid:{
@@ -939,7 +958,9 @@ const ssbProfile = Vue.component('ssb-profile',{
       id:'',
       posts:[],
       cursor:Infinity,
-      author:{}
+      author:{},
+      newName:'',
+      editingName:false
     }
   },
   watch:{
@@ -968,12 +989,24 @@ const ssbProfile = Vue.component('ssb-profile',{
                 <a>
                   <ssb-avatar size="large" :userid="id"/>
                 </a>
-                <span v-if="author.name" class="is-size-2">{{author.name}}</span>
+                <span v-if="author.name && !editingName" class="is-size-2 has-text-weight-bold">{{author.name}}</span>
+                <span v-if="editingName" >
+                  <div class="field has-addons">
+                    <div class="control">
+                      <input class="input" type="text" v-model="newName"></input>
+                    </div>
+                    <div class="control">
+                      <button class="button is-success" @click="saveName">Save</button>
+                    </div>
+                  </div>
+                </span>
                 <span>
+                  <button class="button" :class="editingName?'is-danger':''" @click="toggleEditName">{{editingName?'Cancel Editing':'Edit Name'}}</button>
                   <button @click="unfollow" v-if= "author.isFriend && !isMe" class="button is-success">Following</button>
                   <button @click="follow" v-if="!author.isFriend && !isMe" class="button is-dark">Not Following</button>
                 </span>
               </div>
+
               <div class="breakword">{{id}}</div>
 
 
@@ -1057,6 +1090,25 @@ const ssbProfile = Vue.component('ssb-profile',{
         if(er){alert(er);return;}
         this.author.isBlocked = false;
       })
+    },
+    saveName(){
+      var id = this.id;
+
+      var name = this.newName;
+      if(!confirm("Set this users' name to '"+name+"'?")){
+        this.editingName = false;
+        return;
+      }      
+      
+      setProfileData({id:id,key:'name',value:name},(er)=>{
+        if(er){alert(er);return;}
+        this.author.name = name;
+        this.editingName = false;
+      })
+
+    },
+    toggleEditName(){
+      this.editingName = !this.editingName;
     }
   },
   created(){
@@ -1087,7 +1139,7 @@ window.hrefForChannel = function(c){
   return `/channel/${ encodeURIComponent(c) }`
 }
 window.hrefForBlobAddress = function(addr){
-  return `/blob/${ encodeURIComponent(addr) }`
+  return `${window.imageDomain}/blob/${ encodeURIComponent(addr) }`
 }
 window.hrefForThread = function(id){
   return `/post/${encodeURIComponent(id).replace('.','%2E')}`
@@ -1116,6 +1168,11 @@ window.authorizedFetch = function(url,options,done){
   var opts = JSON.parse(JSON.stringify(options));
   opts.headers = opts.headers || {};
   opts.headers['Authorization'] = 'Bearer '+localStorage['jwt'];
+
+  if(opts.body && typeof opts.body != 'string'){
+    opts.body = JSON.stringify(opts.body);
+    opts.headers['Content-Type'] = "application/json";
+  }
 
   var resok = false;
   var response;

@@ -8,7 +8,8 @@ const history = require('connect-history-api-fallback');
 
 const parseJsonBody = require('body-parser').json()
 const parsePlaintextBody = require('body-parser').text()
-const app = express();
+
+const argv = require('yargs').argv
 
 // passport
 const passport = require('passport');
@@ -20,13 +21,43 @@ const JwtStrategy = passportJWT.Strategy;
 var sbot = null;
 var login = require('./lib/login')
 
+// parse CLI args
+const imagePort = argv.imageport || process.argv.IMAGEPORT || 8081;
+const mainPort = argv.port || process.env.PORT || 8080;
 
-app.use(compression({}))// defaults for now
+
+// setting the domain is required for hosting because we need to set the URL where images are stored
+// in production this should probably be a subdomain or something
+// but not required for a single local machine
+// TODO this is a bit of a cluster
+
+const domain = argv.domain || process.env.DOMAIN || '/';
+var imageDomain = argv.domain || process.env.IMAGEDOMAIN || 'http://localhost:'+imagePort;
+
+const listenAddress = argv.listenaddress || process.env.LISTENADDRESS || '127.0.0.1'
+
+ssbHelpers.configure({
+  domain,
+  imageDomain,
+  listenAddress
+});
+
+
+// create express apps
+const compressionMiddleware = compression({});
+
+const imageApp = express();
+imageApp.use(compressionMiddleware);
+
+const app = express();
+app.use(compressionMiddleware)// defaults for now
+app.set('view engine', 'ejs');
+
 
 // Passport config
 var jwtOptions = {
   jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey : login.getSessionSecretSync(),// TODO: this needs to change ASAP
+  secretOrKey : login.getSessionSecretSync(),
   algorithms:['HS512']
 }
 
@@ -38,15 +69,7 @@ passport.use(new JwtStrategy(jwtOptions,function(payload, done) {
 ));
 
 
-/*
-// TODO.  Only run on localhost for now.
-function ensureAuthenticated(req,res,next){
-  return next(null);
-}
-*/
-
 var ensureAuthenticated = passport.authenticate('jwt', { session: false });
-
 
 app.use(passport.initialize());
 app.post('/login',parseJsonBody,function(req,res,next){
@@ -309,7 +332,7 @@ app.put('/profile',ensureAuthenticated,parseJsonBody,function(req,res,next){
 });
 
 // NOTE: cannot authenticate img requests 🤔
-app.get('/blob/:id',function(req,res,next){
+imageApp.get('/blob/:id',function(req,res,next){
 
   var ct = 'text/plain';
   if(req.query.contenttype){
@@ -339,6 +362,18 @@ app.get('/blob/:id',function(req,res,next){
 })
 
 
+const spaRoutes = ['/','/index.html','login','/friends','/settings','/new','/me','/profile/:id','/channel/:id','/post/:id'];
+
+
+spaRoutes.forEach(route=>{
+  // render home
+  app.get(route,function(req,res,next){
+    return res.render('index',{imageDomain})
+  })
+});
+
+
+
 // SPA fallback then serve static files
 app.use(history());
 app.use(serveStatic('public',{dotfiles:'deny'}))
@@ -355,7 +390,12 @@ party(function(er,ssb){
   sbot = ssb;
 
 
-  app.listen(8080,'0.0.0.0',function(er){
-    console.log('listenin on 8080 :)')
+  app.listen(mainPort,listenAddress,function(er){
+    console.log(`listenin' on ${listenAddress}:${mainPort} :)`)
   })
+
+  imageApp.listen(imagePort,listenAddress,function(er){
+    console.log(`serving blobs on ${listenAddress}:${imagePort} :)`)
+  })
+
 });

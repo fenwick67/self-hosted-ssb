@@ -10,7 +10,7 @@ window.hrefForChannel = function(c){
   return `/channel/${ encodeURIComponent(c) }`
 }
 window.hrefForBlobAddress = function(addr){
-  return `/blob/${ encodeURIComponent(addr) }`
+  return `${window.imageDomain}/blob/${ encodeURIComponent(addr) }`
 }
 window.hrefForThread = function(id){
   return `/post/${encodeURIComponent(id).replace('.','%2E')}`
@@ -39,6 +39,11 @@ window.authorizedFetch = function(url,options,done){
   var opts = JSON.parse(JSON.stringify(options));
   opts.headers = opts.headers || {};
   opts.headers['Authorization'] = 'Bearer '+localStorage['jwt'];
+
+  if(opts.body && typeof opts.body != 'string'){
+    opts.body = JSON.stringify(opts.body);
+    opts.headers['Content-Type'] = "application/json";
+  }
 
   var resok = false;
   var response;

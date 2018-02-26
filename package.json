@@ -16,6 +16,8 @@
     "compression": "^1.7.1",
     "connect-history-api-fallback": "^1.5.0",
     "eff-diceware-passphrase": "^1.0.0",
+    "ejs": "^2.5.7",
+    "ip": "^1.1.5",
     "jsonwebtoken": "^8.1.1",
     "lodash": "^4.17.5",
     "passport": "^0.4.0",
@@ -25,7 +27,8 @@
     "sanitize-html": "^1.17.0",
     "serve-static": "^1.13.2",
     "ssb-markdown": "^3.5.0",
-    "ssb-party": "^0.5.1"
+    "ssb-party": "^0.5.1",
+    "yargs": "^11.0.0"
   },
   "devDependencies": {
     "bulma": "^0.6.2"
