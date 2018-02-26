@@ -11,8 +11,8 @@ function genPlaceholder(userid){
   var rot = 360*((n % 926)/926);
   var w = 8 + 20 * ((n % 381)/381);
   var w2 = 2*w;
-  var c = `hsla(${n1}deg,60%,50%,0.7)`
-  var c2 = `hsla(${n2}deg,50%,60%,1.0)`
+  var c = `hsla(${n1},60%,50%,0.7)`
+  var c2 = `hsla(${n2},50%,60%,1.0)`
   return `background-image:repeating-linear-gradient(${rot-90}deg, transparent 0%, transparent ${w}%, ${c} ${w}%, ${c} ${w2}%), repeating-linear-gradient(${rot}deg, transparent 0%, transparent ${w}%, ${c2} ${w}%, ${c2} ${w2}%)`;
 }
 
