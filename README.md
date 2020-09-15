@@ -1,5 +1,7 @@
 # Self-hosted SSB
 
+(NOTE: THIS IS SLOW AND BAD, IT IS NOT MAINTAINED AND IS MOSTLY A PROOF OF CONCEPT)
+
 A functioning, single-user, self-hosted Secure Scuttlebutt web server!
 
 ![screenshot](doc/screenshot-narrow.png)
